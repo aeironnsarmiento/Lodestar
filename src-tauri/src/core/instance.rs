@@ -89,9 +89,17 @@ pub enum RestartMode {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Default)]
 #[serde(rename_all = "camelCase", default)]
 pub struct RestartSchedule {
+    /// Off keeps the times but never restarts. New servers start off; records saved
+    /// before the switch existed read as on, so their schedules keep running.
+    #[serde(default = "schedule_enabled_by_default")]
+    pub enabled: bool,
     /// Daily local times, `HH:MM`.
     pub times: Vec<String>,
     pub mode: RestartMode,
+}
+
+fn schedule_enabled_by_default() -> bool {
+    true
 }
 
 /// How to launch the installed server, decided at provisioning time.

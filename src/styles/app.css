@@ -833,23 +833,67 @@ table.data .seed {
   font-weight: 500;
 }
 
-.save-bar {
+/*
+ * Save pill: floats at the bottom of the window, centred over the page, whenever
+ * there are unsaved changes (and briefly after saving). It is the last thing on the
+ * page, so it sits in the flow at the very end instead of covering the delete panel.
+ */
+.save-pill {
+  position: sticky;
+  bottom: 12px;
+  z-index: 20;
   display: flex;
+  align-self: center;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--gap-md);
-  padding: var(--gap-sm) var(--gap-sm) var(--gap-sm) var(--gap-lg);
+  gap: var(--gap-xs);
+  max-width: 100%;
+  margin-top: var(--gap-xs);
+  padding: 6px 6px 6px 18px;
   border-radius: var(--radius-pill);
-  font-size: 0.84rem;
+  font-size: 0.82rem;
+  animation: pill-in var(--dur-slow) var(--ease-out);
 }
 
-/* With unsaved changes it stays in view at the bottom while the settings scroll. */
-.save-bar[data-floating="true"] {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
+.glass.save-pill {
   background: var(--glass-surface-solid);
-  box-shadow: var(--glass-edge), var(--glass-shadow);
+}
+
+.save-pill-text {
+  min-width: 0;
+  margin-right: var(--gap-xs);
+  overflow: hidden;
+  color: var(--ink-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save-pill-text .row {
+  gap: 6px;
+  color: var(--live);
+}
+
+/* The pill only shows the confirmation once saved: pad it evenly. */
+.save-pill:not(:has(.gbtn)) {
+  padding-right: 18px;
+}
+
+@keyframes pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+}
+
+/* Settings that open up when their switch is turned on. */
+.reveal {
+  animation: reveal var(--dur) var(--ease-out);
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 }
 
 .dialog .toggle-row {

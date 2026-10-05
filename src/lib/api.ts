@@ -18,6 +18,7 @@ export type Provision =
 export type LaunchInfo = { kind: "jar"; jar: string } | { kind: "argsFile"; argsFile: string };
 
 export interface RestartSchedule {
+  enabled: boolean;
   times: string[];
   mode: RestartMode;
 }

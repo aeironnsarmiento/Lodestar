@@ -18,7 +18,7 @@ describe("Scheduled restart settings", () => {
 
   it("adds and removes daily restart times, switches modes, and saves them to the instance", async () => {
     const user = userEvent.setup();
-    render(<SettingsTab instance={makeInstance({ restart: { times: ["04:00"], mode: "warn" } })} running={false} onDeleted={() => {}} />);
+    render(<SettingsTab instance={makeInstance({ restart: { enabled: true, times: ["04:00"], mode: "warn" } })} running={false} onDeleted={() => {}} />);
     const times = screen.getByLabelText("Restart times");
     expect(within(times).getByText("04:00")).toBeInTheDocument();
 
@@ -37,17 +37,18 @@ describe("Scheduled restart settings", () => {
 
     await user.click(screen.getByRole("button", { name: /save changes/i }));
     expect(invoke).toHaveBeenCalledWith("update_instance", {
-      instance: expect.objectContaining({ restart: { times: ["16:30"], mode: "postpone" } }),
+      instance: expect.objectContaining({ restart: { enabled: true, times: ["16:30"], mode: "postpone" } }),
     });
     await waitFor(() => expect(screen.getByText(/saved/i)).toBeInTheDocument());
   });
 
   it("ignores duplicate times", async () => {
     const user = userEvent.setup();
-    render(<SettingsTab instance={makeInstance({ restart: { times: ["04:00"], mode: "warn" } })} running={false} onDeleted={() => {}} />);
+    render(<SettingsTab instance={makeInstance({ restart: { enabled: true, times: ["04:00"], mode: "warn" } })} running={false} onDeleted={() => {}} />);
     await user.click(screen.getByRole("button", { name: /add time/i }));
     expect(within(screen.getByLabelText("Restart times")).getAllByText("04:00")).toHaveLength(1);
-    expect(screen.getByRole("button", { name: /save changes/i })).toBeDisabled();
+    // Nothing changed, so the floating save pill stays hidden.
+    expect(screen.queryByRole("button", { name: /save changes/i })).not.toBeInTheDocument();
   });
 });
 
@@ -85,5 +86,26 @@ describe("Server settings panels", () => {
         properties: expect.objectContaining({ whiteList: true, pvp: false, levelType: "amplified" }),
       }),
     });
+  });
+});
+
+describe("Collapsing settings", () => {
+  it("hides the whitelist and restart settings while they are off, and can discard edits", async () => {
+    const user = userEvent.setup();
+    render(<SettingsTab instance={makeInstance()} running={false} onDeleted={() => {}} />);
+
+    const whitelist = screen.getByRole("region", { name: "Whitelist" });
+    expect(within(whitelist).queryByText("Whitelisted players")).not.toBeInTheDocument();
+    await user.click(within(whitelist).getByRole("switch", { name: "Use the whitelist" }));
+    expect(within(whitelist).getByText("Whitelisted players")).toBeInTheDocument();
+
+    const restarts = screen.getByRole("region", { name: "Scheduled restarts" });
+    expect(within(restarts).queryByLabelText("Restart times")).not.toBeInTheDocument();
+    await user.click(within(restarts).getByRole("switch", { name: "Restart on a schedule" }));
+    expect(within(restarts).getByLabelText("Restart times")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Discard" }));
+    expect(within(whitelist).queryByText("Whitelisted players")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /save changes/i })).not.toBeInTheDocument();
   });
 });

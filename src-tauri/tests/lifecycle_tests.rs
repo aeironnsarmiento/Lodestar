@@ -21,7 +21,7 @@ fn at(h: u32, m: u32, s: u32) -> NaiveDateTime {
 }
 
 fn sched(mode: RestartMode) -> RestartSchedule {
-    RestartSchedule { times: vec!["04:00".into()], mode }
+    RestartSchedule { enabled: true, times: vec!["04:00".into()], mode }
 }
 
 async fn eventually(mut check: impl FnMut() -> bool) {
@@ -153,7 +153,7 @@ async fn user_reset_and_scheduled_stops_are_not_crashes() {
     });
     let inst = ready_instance(&app, "Calm");
     app.store
-        .modify(&inst.id, |i| i.restart = RestartSchedule { times: vec!["04:00".into()], mode: RestartMode::Warn })
+        .modify(&inst.id, |i| i.restart = RestartSchedule { enabled: true, times: vec!["04:00".into()], mode: RestartMode::Warn })
         .unwrap();
 
     app.launch(&inst.id).await.unwrap();

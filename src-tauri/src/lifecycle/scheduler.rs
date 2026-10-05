@@ -53,7 +53,7 @@ fn upcoming(schedule: &RestartSchedule, now: NaiveDateTime, last_fired: Option<N
 /// running and ready; schedules do nothing for stopped servers.
 pub fn tick(schedule: &RestartSchedule, state: &mut ScheduleState, now: NaiveDateTime, players: usize, online: bool) -> Vec<Action> {
     let mut actions = Vec::new();
-    if !online || schedule.times.is_empty() {
+    if !online || !schedule.enabled || schedule.times.is_empty() {
         // A due time that passes while the server is down is skipped, not queued.
         if let Some(due) = state.pending.take() {
             state.last_fired = Some(due);

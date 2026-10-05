@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { GlassButton } from "../../components/glass/GlassButton";
 import { GlassInput, GlassSelect, NumberInput, Switch } from "../../components/glass/GlassInput";
+import { GlassPanel } from "../../components/glass/GlassPanel";
+import { Icon } from "../../components/Icon";
 import { PlayerListEditor } from "../../components/PlayerListEditor";
 import {
   api,
@@ -46,16 +48,27 @@ function Panel({ title, note, children, className }: { title: string; note?: str
 }
 
 export function SettingsTab({ instance, running, onDeleted }: SettingsTabProps) {
+  // `base` is the last saved record: the instance, or what a save just returned
+  // before the backend's change event catches up.
+  const [base, setBase] = useState<Instance>(instance);
   const [draft, setDraft] = useState<Instance>(instance);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Pick up backend changes (provisioning, world switches) when nothing is being edited.
-  const dirty = JSON.stringify(draft) !== JSON.stringify(instance);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(base);
   useEffect(() => {
+    setBase(instance);
     if (!dirty) setDraft(instance);
   }, [instance]); // `dirty` is read on purpose without re-running on every keystroke
+
+  // The "Saved" confirmation fades out on its own.
+  useEffect(() => {
+    if (!saved) return;
+    const timer = setTimeout(() => setSaved(false), 2500);
+    return () => clearTimeout(timer);
+  }, [saved]);
 
   const set = <K extends keyof Instance>(key: K, value: Instance[K]) => {
     setSaved(false);
@@ -71,11 +84,17 @@ export function SettingsTab({ instance, running, onDeleted }: SettingsTabProps) 
     setError(null);
     try {
       const next = await api.updateInstance(draft);
+      setBase(next);
       setDraft(next);
       setSaved(true);
     } catch (e) {
       setError(errorMessage(e));
     }
+  };
+
+  const discard = () => {
+    setError(null);
+    setDraft(base);
   };
 
   const remove = async () => {
@@ -200,24 +219,23 @@ export function SettingsTab({ instance, running, onDeleted }: SettingsTabProps) 
         </Row>
       </Panel>
 
-      <Panel title="Whitelist" note={listsNote}>
+      <Panel title="Whitelist" note={p.whiteList ? listsNote : undefined}>
         <Row label="Use the whitelist" hint="Only players on the list can join">
           <Switch label="Use the whitelist" checked={p.whiteList} onChange={(v) => setProp("whiteList", v)} />
         </Row>
-        <Row label="Kick players not on it" hint="Removes anyone online who is not on the list when it changes">
-          <Switch
-            label="Kick players not on it"
-            checked={p.enforceWhitelist}
-            disabled={!p.whiteList}
-            onChange={(v) => setProp("enforceWhitelist", v)}
-          />
-        </Row>
-        <PlayerListEditor
-          label="Whitelisted players"
-          names={draft.whitelist}
-          empty="Nobody is on the whitelist yet."
-          onChange={(names) => set("whitelist", names)}
-        />
+        {p.whiteList && (
+          <div className="reveal">
+            <Row label="Kick players not on it" hint="Removes anyone online who is not on the list when it changes">
+              <Switch label="Kick players not on it" checked={p.enforceWhitelist} onChange={(v) => setProp("enforceWhitelist", v)} />
+            </Row>
+            <PlayerListEditor
+              label="Whitelisted players"
+              names={draft.whitelist}
+              empty="Nobody is on the whitelist yet."
+              onChange={(names) => set("whitelist", names)}
+            />
+          </div>
+        )}
       </Panel>
 
       <Panel title="Operators" note={listsNote}>
@@ -284,29 +302,19 @@ export function SettingsTab({ instance, running, onDeleted }: SettingsTabProps) 
       </Panel>
 
       <Panel title="Scheduled restarts">
-        <ScheduleEditor value={draft.restart} onChange={(restart) => set("restart", restart)} />
+        <Row label="Restart on a schedule" hint="Daily restarts keep long-running servers fresh">
+          <Switch
+            label="Restart on a schedule"
+            checked={draft.restart.enabled}
+            onChange={(enabled) => set("restart", { ...draft.restart, enabled })}
+          />
+        </Row>
+        {draft.restart.enabled && (
+          <div className="reveal">
+            <ScheduleEditor value={draft.restart} onChange={(restart) => set("restart", restart)} />
+          </div>
+        )}
       </Panel>
-
-      <div className="save-bar surface" data-floating={dirty}>
-        <span className="muted">
-          {error ? (
-            <span className="error-text" role="alert">
-              {error}
-            </span>
-          ) : saved ? (
-            "Saved. Changes apply on the next start."
-          ) : dirty ? (
-            "You have unsaved changes."
-          ) : running ? (
-            "Changes apply on the next start."
-          ) : (
-            ""
-          )}
-        </span>
-        <GlassButton variant="primary" disabled={!dirty} onClick={save}>
-          Save changes
-        </GlassButton>
-      </div>
 
       <Panel title="Delete server" className="danger-zone">
         <Row label="Delete this server" hint="Removes its files and every kept world. This cannot be undone.">
@@ -326,6 +334,33 @@ export function SettingsTab({ instance, running, onDeleted }: SettingsTabProps) 
           )}
         </Row>
       </Panel>
+
+      {(dirty || saved || error) && (
+        <GlassPanel layer tone="raised" className="save-pill" role="status">
+          <span className="save-pill-text">
+            {error ? (
+              <span className="error-text">{error}</span>
+            ) : dirty ? (
+              running ? "Unsaved changes · they apply on the next start" : "Unsaved changes"
+            ) : (
+              <span className="row">
+                <Icon name="check" size={14} />
+                Saved
+              </span>
+            )}
+          </span>
+          {dirty && (
+            <>
+              <GlassButton size="sm" variant="ghost" onClick={discard}>
+                Discard
+              </GlassButton>
+              <GlassButton size="sm" variant="primary" onClick={save}>
+                Save changes
+              </GlassButton>
+            </>
+          )}
+        </GlassPanel>
+      )}
     </div>
   );
 }

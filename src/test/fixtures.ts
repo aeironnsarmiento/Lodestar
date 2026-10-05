@@ -43,7 +43,7 @@ export function makeInstance(overrides: Partial<Instance> = {}): Instance {
       requireResourcePack: false,
     },
     autoStart: false,
-    restart: { times: [], mode: "warn" },
+    restart: { enabled: false, times: [], mode: "warn" },
     speedMods: true,
     managedMods: [],
     managedModsFor: null,
