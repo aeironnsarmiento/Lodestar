@@ -1,4 +1,5 @@
 pub mod app;
+pub mod automation;
 pub mod control;
 pub mod events;
 pub mod instance;

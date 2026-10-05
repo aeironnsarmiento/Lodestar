@@ -255,6 +255,17 @@ impl Supervisor {
         Ok(())
     }
 
+    /// Leaves Crashed for Stopped without restarting, keeping a notice (the crash
+    /// policy gave up).
+    pub fn give_up(&self, id: &str, message: String) {
+        let rt = self.runtime(id);
+        if rt.inner.lock().unwrap().state != ServerState::Crashed {
+            return;
+        }
+        self.set_message(&rt, Some(message));
+        self.transition(&rt, ServerState::Stopped, None, None);
+    }
+
     /// Leaves Preparing without starting (provisioning failed or was cancelled).
     pub fn abort_prepare(&self, id: &str, message: Option<String>) {
         let rt = self.runtime(id);

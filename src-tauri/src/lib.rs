@@ -2,27 +2,60 @@ pub mod commands;
 pub mod core;
 pub mod download;
 pub mod java;
+pub mod lifecycle;
 pub mod providers;
 pub mod supervisor;
 pub mod worlds;
 
 use std::sync::Arc;
 
-use tauri::Manager;
+use tauri::{Manager, WindowEvent};
 
 use crate::core::app::{App, AppConfig};
 use crate::core::events::TauriSink;
 use crate::core::paths::Paths;
+use crate::lifecycle::{autostart, tray};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // Must be first: a second launch focuses the running app instead.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| tray::show_main(app)))
         .plugin(tauri_plugin_opener::init())
+        .plugin(autostart::plugin())
         .setup(|tauri_app| {
-            let events = Arc::new(TauriSink(tauri_app.handle().clone()));
+            let handle = tauri_app.handle().clone();
+            let events = Arc::new(TauriSink(handle.clone()));
             let app = App::new(AppConfig::new(Paths::new(Paths::default_root())), events)?;
-            tauri_app.manage(app);
+            tauri_app.manage(app.clone());
+
+            tray::install(&handle)?;
+            if autostart::launched_minimized() {
+                if let Some(w) = handle.get_webview_window("main") {
+                    let _ = w.hide();
+                }
+            }
+            // Keep the Run entry in step with the setting (e.g. after the app moved).
+            let _ = autostart::apply(&handle, app.settings().start_with_windows);
+
+            tauri::async_runtime::spawn(app.clone().run_scheduler());
+            tauri::async_runtime::spawn(app.autostart_instances());
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() != "main" {
+                    return;
+                }
+                api.prevent_close();
+                let app = window.app_handle();
+                let close_to_tray = app.state::<Arc<App>>().settings().close_to_tray;
+                if close_to_tray {
+                    let _ = window.hide();
+                } else {
+                    tray::quit(app);
+                }
+            }
         })
         .invoke_handler(tauri::generate_handler![
             commands::instances::list_instances,
@@ -48,6 +81,7 @@ pub fn run() {
             commands::settings::get_settings,
             commands::settings::set_settings,
             commands::settings::accept_eula,
+            commands::settings::quit_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

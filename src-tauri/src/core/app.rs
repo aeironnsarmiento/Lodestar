@@ -1,8 +1,9 @@
 //! The backend service that Tauri commands call into. It owns the store, providers,
 //! Java runtimes, the process supervisor and the event sink.
 
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::Result;
@@ -17,7 +18,11 @@ use crate::download::Downloader;
 use crate::java::{InstalledRuntime, JavaManager};
 use crate::providers::{Endpoints, Providers, VersionEntry};
 use crate::supervisor::console::log_path;
-use crate::supervisor::{ServerState, StateChange, Supervisor, DEFAULT_STOP_TIMEOUT};
+use crate::lifecycle::crash::{CrashPolicy, BACKOFF};
+use crate::lifecycle::keep_awake::KeepAwake;
+use crate::lifecycle::scheduler::ScheduleState;
+use crate::lifecycle::{Clock, SystemClock};
+use crate::supervisor::{Supervisor, DEFAULT_STOP_TIMEOUT};
 
 /// Where the app's data lives and which services it talks to.
 #[derive(Clone)]
@@ -30,6 +35,10 @@ pub struct AppConfig {
     /// Runs servers with this program instead of the managed Java. Tests use it to
     /// substitute `fake_mc` (KTD5); the app never sets it.
     pub java_override: Option<std::path::PathBuf>,
+    /// Time source for crash windows and restart schedules.
+    pub clock: Arc<dyn Clock>,
+    /// Delays before the automatic restarts after a crash (KTD13).
+    pub crash_backoff: [Duration; 3],
 }
 
 impl AppConfig {
@@ -41,6 +50,8 @@ impl AppConfig {
             download_backoff: Duration::from_secs(1),
             stop_timeout: DEFAULT_STOP_TIMEOUT,
             java_override: None,
+            clock: Arc::new(SystemClock),
+            crash_backoff: BACKOFF,
         }
     }
 }
@@ -52,6 +63,11 @@ pub struct App {
     pub java: JavaManager,
     pub supervisor: Arc<Supervisor>,
     pub java_override: Option<std::path::PathBuf>,
+    pub clock: Arc<dyn Clock>,
+    pub crash_backoff: [Duration; 3],
+    pub crash: Mutex<CrashPolicy>,
+    pub schedules: Mutex<HashMap<String, ScheduleState>>,
+    pub keep_awake: KeepAwake,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -81,30 +97,21 @@ impl App {
         for inst in store.list() {
             supervisor.load_history(&inst.id, &log_path(&config.paths.server_dir(&inst.id)));
         }
-        let app = Arc::new(Self { store, events, providers, java, supervisor, java_override: config.java_override });
+        let app = Arc::new(Self {
+            store,
+            events,
+            providers,
+            java,
+            supervisor,
+            java_override: config.java_override,
+            clock: config.clock,
+            crash_backoff: config.crash_backoff,
+            crash: Mutex::new(CrashPolicy::default()),
+            schedules: Mutex::new(HashMap::new()),
+            keep_awake: KeepAwake::new(),
+        });
         app.install_hooks();
         Ok(app)
-    }
-
-    fn install_hooks(self: &Arc<Self>) {
-        let weak = Arc::downgrade(self);
-        self.supervisor.add_hook(Arc::new(move |change| {
-            if let Some(app) = weak.upgrade() {
-                app.on_state_change(change);
-            }
-        }));
-    }
-
-    /// Reacts to lifecycle transitions (runs on the supervisor's task; must not block).
-    fn on_state_change(&self, change: &StateChange) {
-        if change.state == ServerState::Online {
-            if let Ok(inst) = self.store.get(&change.id) {
-                let name = inst.op_name.trim();
-                if !name.is_empty() {
-                    let _ = self.supervisor.send_command(&change.id, &format!("op {name}"));
-                }
-            }
-        }
     }
 
     pub fn paths(&self) -> &Paths {

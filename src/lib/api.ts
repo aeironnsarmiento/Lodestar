@@ -164,4 +164,5 @@ export const api = {
   getSettings: () => invoke<AppSettings>("get_settings"),
   setSettings: (settings: AppSettings) => invoke<AppSettings>("set_settings", { settings }),
   acceptEula: () => invoke<AppSettings>("accept_eula"),
+  quitApp: () => invoke<void>("quit_app"),
 };

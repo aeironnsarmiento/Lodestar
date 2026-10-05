@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { GlassButton } from "../../components/glass/GlassButton";
 import { GlassInput, GlassSelect, NumberInput, Switch } from "../../components/glass/GlassInput";
 import { api, type Difficulty, type GameMode, type Instance } from "../../lib/api";
+import { ScheduleEditor } from "../../components/ScheduleEditor";
 import { errorMessage } from "../../state/store";
 
 interface SettingsTabProps {
@@ -131,6 +132,11 @@ export function SettingsTab({ instance, running, onDeleted }: SettingsTabProps) 
             <Switch label="Speed mods" checked={draft.speedMods} onChange={(v) => set("speedMods", v)} />
           </Row>
         )}
+      </section>
+
+      <section className="surface panel">
+        <h2 className="section-title">Scheduled restarts</h2>
+        <ScheduleEditor value={draft.restart} onChange={(restart) => set("restart", restart)} />
       </section>
 
       {error && (
