@@ -9,6 +9,18 @@ default-run = "glasscraft"
 [lib]
 name = "glasscraft_lib"
 
+# `fake_mc` plays a Minecraft server in tests. It is built by `cargo test` (default
+# features) but not by `tauri build`/`tauri dev`, which pass --no-default-features,
+# so it never ships in the installer.
+[[bin]]
+name = "fake_mc"
+path = "src/bin/fake_mc.rs"
+required-features = ["test-helpers"]
+
+[features]
+default = ["test-helpers"]
+test-helpers = []
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
