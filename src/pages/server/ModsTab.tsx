@@ -20,7 +20,7 @@ interface ModsTabProps {
 
 /**
  * The server's mods (or plugins) folder: drop `.jar` files anywhere on the window,
- * browse Modrinth and CurseForge, turn files on and off, update and remove them.
+ * browse Modrinth, turn files on and off, update and remove them.
  */
 export function ModsTab({ instance, running, onOpenSettings }: ModsTabProps) {
   const plugins = instance.serverType === "paper";
@@ -257,7 +257,7 @@ export function ModsTab({ instance, running, onOpenSettings }: ModsTabProps) {
         {entries?.length === 0 && (
           <div className="empty drop-hint">
             <Icon name="folder" size={26} />
-            <span>No {noun}s yet. Drop .jar files here, or browse Modrinth and CurseForge.</span>
+            <span>No {noun}s yet. Drop .jar files here, or browse Modrinth.</span>
           </div>
         )}
         {entries && entries.length > 0 && shown.length === 0 && <div className="empty faint">Nothing matches “{filter}”.</div>}

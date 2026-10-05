@@ -5,6 +5,7 @@ import { Switch } from "../components/glass/GlassInput";
 import { Icon } from "../components/Icon";
 import {
   api,
+  CURSEFORGE_ENABLED,
   loadersFor,
   SOURCE_LABELS,
   type AddonEntry,
@@ -54,7 +55,7 @@ function open(url: string) {
 }
 
 /**
- * Browse Modrinth and CurseForge. For a server it shows only what that server can
+ * Browse Modrinth (and CurseForge, once enabled). For a server it shows only what that server can
  * run (its loader and Minecraft version) unless "Compatible only" is turned off; for
  * modpacks it lists every pack and hands the chosen version back.
  */
@@ -153,6 +154,7 @@ export function ProjectBrowser({ kind, onClose, instance, installed = [], onInst
   return (
     <Dialog title={onPickModpack ? "Choose a modpack" : `Browse ${what}`} onClose={onClose} width={1040} className="browser-dialog">
       <div className="browser-toolbar">
+        {CURSEFORGE_ENABLED && (
         <div className="segmented browser-sources" role="radiogroup" aria-label="Site">
           {(["modrinth", "curseforge"] as AddonSource[]).map((s) => (
             <button
@@ -167,6 +169,7 @@ export function ProjectBrowser({ kind, onClose, instance, installed = [], onInst
             </button>
           ))}
         </div>
+        )}
         <div className="console-search browser-search">
           <Icon name="search" size={15} />
           <input

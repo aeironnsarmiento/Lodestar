@@ -5,6 +5,7 @@ import { GlassInput } from "../components/glass/GlassInput";
 import { Icon } from "../components/Icon";
 import {
   api,
+  CURSEFORGE_ENABLED,
   SERVER_TYPE_LABELS,
   SOURCE_LABELS,
   type Instance,
@@ -73,7 +74,7 @@ export function ModpackServerForm({ onClose, onCreated, onOpenSettings }: Modpac
   const importFile = async () => {
     setError(null);
     try {
-      const path = await openFiles({ title: "Import a modpack", filters: [{ name: "Modpacks", extensions: ["mrpack", "zip"] }] });
+      const path = await openFiles({ title: "Import a modpack", filters: [{ name: "Modpacks", extensions: CURSEFORGE_ENABLED ? ["mrpack", "zip"] : ["mrpack"] }] });
       if (!path || Array.isArray(path)) return;
       const info = await api.inspectModpackFile(path);
       setName(info.name);
@@ -116,12 +117,12 @@ export function ModpackServerForm({ onClose, onCreated, onOpenSettings }: Modpac
           <button type="button" className="modpack-choice" onClick={() => setBrowsing(true)}>
             <Icon name="search" size={22} />
             <span className="label">Browse modpacks</span>
-            <span className="hint">Modrinth and CurseForge</span>
+            <span className="hint">{CURSEFORGE_ENABLED ? "Modrinth and CurseForge" : "From Modrinth"}</span>
           </button>
           <button type="button" className="modpack-choice" onClick={importFile}>
             <Icon name="folder" size={22} />
             <span className="label">Import a file</span>
-            <span className="hint">.mrpack or CurseForge .zip</span>
+            <span className="hint">{CURSEFORGE_ENABLED ? ".mrpack or CurseForge .zip" : "A Modrinth .mrpack file"}</span>
           </button>
         </div>
       ) : (

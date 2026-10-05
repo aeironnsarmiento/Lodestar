@@ -4,7 +4,7 @@ import { PageHeader } from "../components/PageHeader";
 import { GlassButton } from "../components/glass/GlassButton";
 import { GlassInput, Switch } from "../components/glass/GlassInput";
 import { Icon } from "../components/Icon";
-import { api } from "../lib/api";
+import { api, CURSEFORGE_ENABLED } from "../lib/api";
 import { saveSettings, useStore } from "../state/store";
 import {
   applyGlassOpacity,
@@ -76,7 +76,7 @@ export function SettingsPage({ reduceEffects, onReduceEffects }: SettingsPagePro
           </div>
         </section>
 
-        <CurseForgeSection />
+        {CURSEFORGE_ENABLED && <CurseForgeSection />}
 
         <section className="surface panel">
           <h2 className="section-title">Minecraft EULA</h2>

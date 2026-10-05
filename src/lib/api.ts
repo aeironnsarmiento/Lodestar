@@ -366,3 +366,9 @@ export function addonKindFor(serverType: ServerType): "mod" | "plugin" | null {
 }
 
 export const SOURCE_LABELS: Record<AddonSource, string> = { modrinth: "Modrinth", curseforge: "CurseForge" };
+
+/**
+ * CurseForge needs an API key Lodestar does not have yet, so it is switched off in the
+ * UI. The backend support stays; flip this once a key is built in.
+ */
+export const CURSEFORGE_ENABLED = false;

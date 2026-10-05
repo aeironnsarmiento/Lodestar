@@ -27,16 +27,14 @@ no batch files, no manual Java installs, no port forwarding.
   apply straight away.
 - **Fabric speed mods.** Fabric servers can get Lithium and FerriteCore installed
   automatically.
-- **Mods and plugins tab.** Drag `.jar` files onto the window, or browse Modrinth and
-  CurseForge from inside the app (filtered to the server's loader and Minecraft version).
+- **Mods and plugins tab.** Drag `.jar` files onto the window, or browse Modrinth from
+  inside the app (filtered to the server's loader and Minecraft version).
   Installs bring their required dependencies. Turn files on and off, check for and apply
   updates, and remove them. Files added by hand are recognised on Modrinth by their hash.
-- **Modpacks.** New server → A modpack: pick a pack on Modrinth or CurseForge, or import a
-  `.mrpack` / CurseForge `.zip`. Lodestar installs the exact Minecraft version and loader the
+- **Modpacks.** New server → A modpack: pick a pack on Modrinth or import a `.mrpack`. Lodestar installs the exact Minecraft version and loader the
   pack needs, its server-side mods and its settings, and can later switch the server to
-  another version of the pack. CurseForge needs your own free API key (Settings →
-  CurseForge); files whose authors block app downloads are listed with links to grab them
-  by hand.
+  another version of the pack. (CurseForge support is built but switched off until the app
+  has its own CurseForge API key.)
 
 ## Running servers
 
