@@ -1,20 +1,58 @@
 # Glasscraft
 
-A personal Windows 11 app for hosting Minecraft Java servers, with a Liquid Glass look
-and a one-click **Reset World** for speedruns.
+A Windows app for running Minecraft Java servers on your own PC. Each server is a
+self-contained instance you can create, launch, watch, reset and share from one window —
+no batch files, no manual Java installs, no port forwarding.
 
-- Create Vanilla, Paper, Fabric, Forge (1.17+) and NeoForge servers as isolated instances.
-- The right Java downloads automatically (portable Eclipse Temurin; nothing is installed system-wide).
-- Dashboard cards with live CPU, RAM and players; a live console with search and commands.
-- **Reset World**: players are disconnected, a fresh world (random or chosen seed) boots, and
-  the last 10 worlds are kept with their seeds so you can go back to any of them.
-- Friends join from anywhere through a fully managed playit.gg tunnel.
-- Crash restarts, scheduled restarts, keep-awake while servers run, tray, start with Windows.
+## Instance management
+
+- **Isolated instances.** Vanilla, Paper, Fabric, Forge (1.17+) and NeoForge servers each
+  get their own folder, settings, port and worlds. Run several at once.
+- **Guided setup.** Pick a name, type, version (snapshots optional), seed, game mode,
+  difficulty and player limit. Glasscraft downloads and verifies the server files and the
+  right Java in the background, with progress on the server's card. Failed setups can be
+  retried in place.
+- **Managed Java.** The Java version each Minecraft release needs is downloaded as a
+  portable Eclipse Temurin runtime and shared between servers. Nothing is installed
+  system-wide.
+- **Per-server settings.** Memory, port, MOTD, game mode, difficulty, hardcore, player limit,
+  view and simulation distance, online mode, and an operator name that is opped every time
+  the server comes online. Fabric servers can get Lithium and FerriteCore installed
+  automatically.
+- **Mods and plugins.** Open a server's `mods` or `plugins` folder straight from its page.
+
+## Running servers
+
+- **Dashboard** with a card per server: status, live CPU, RAM and player count, its public
+  address, and Launch / Stop / Restart / Force kill.
+- **Live console** with search, command history and a command line; the history survives
+  restarts.
+- **Players panel** to op or kick anyone online.
+- **Join addresses** for this PC, your LAN, and the internet, each one click to copy.
+- **Supervision.** Servers run inside a Windows job object, so closing Glasscraft never leaves
+  an orphaned `java.exe`. Crashed servers restart automatically.
+- **Scheduled restarts** at set times, either with an in-game countdown or waiting until the
+  server is empty.
+- **Background mode.** Keep-awake while servers run, close to the tray, start with Windows,
+  and start chosen servers with the app.
+
+## Worlds
+
+- **Reset World** in one click: players are disconnected and a fresh world boots with a
+  random or chosen seed. Built for speedrun practice.
+- Every run gets its own world folder with its seed recorded. The last 10 are kept, so you can
+  switch back to any of them from the Worlds tab.
+
+## Playing with friends
+
+Glasscraft manages a [playit.gg](https://playit.gg) agent for you. Link your free playit.gg
+account once and every server gets a public address the first time it launches — friends
+join from anywhere without router setup. Servers that share a port share a tunnel.
 
 ## Install
 
-Run `Glasscraft_<version>_x64-setup.exe`. It installs for your user only, so no
-administrator rights are needed, and adds a Start menu entry.
+Run `Glasscraft_<version>_x64-setup.exe`. It installs for your user only, so no administrator
+rights are needed, and adds a Start menu entry.
 
 The installer is not code-signed, so Windows SmartScreen may say it "protected your PC".
 Choose **More info → Run anyway**.
@@ -28,9 +66,10 @@ Choose **More info → Run anyway**.
 3. **Windows Firewall** asks whether Java may accept connections. Allow it on
    **private networks** so people on your Wi-Fi can join.
 4. **playit.gg** (sidebar) → **Set up playit.gg**. Your browser opens; sign in or create a
-   free playit.gg account and approve Glasscraft. Each server then gets a public address the
-   first time it launches. Free accounts have a small tunnel limit (servers that share a
-   port share a tunnel).
+   free playit.gg account and approve Glasscraft. Free accounts have a small tunnel limit.
+
+Press **D**, **P**, **J** or **S** anywhere to jump to the Dashboard, playit.gg, Java runtimes
+or Settings.
 
 ## Where things live
 
@@ -51,6 +90,8 @@ Uninstalling the app leaves this folder; delete it to remove all servers and wor
 
 ## Development
 
+Built with Tauri 2 (Rust backend, React + TypeScript frontend).
+
 Requirements: Node 22, Rust (stable MSVC) and the Visual Studio C++ build tools.
 
 ```bash
@@ -70,5 +111,3 @@ services are opt-in:
 ```bash
 GLASSCRAFT_LIVE_TESTS=1 cargo test --manifest-path src-tauri/Cargo.toml live_
 ```
-
-The design and decisions are in `docs/plans/`.

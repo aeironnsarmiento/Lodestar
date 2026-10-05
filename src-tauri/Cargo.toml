@@ -1,7 +1,7 @@
 [package]
 name = "glasscraft"
 version = "0.1.0"
-description = "Glasscraft - a Liquid Glass Minecraft server manager for Windows"
+description = "Glasscraft - a Minecraft Java server and instance manager for Windows"
 authors = ["Glasscraft"]
 edition = "2021"
 default-run = "glasscraft"
