@@ -4,6 +4,7 @@ import { ServerCard } from "../components/ServerCard";
 import { GlassButton } from "../components/glass/GlassButton";
 import { Icon } from "../components/Icon";
 import { NewServerDialog } from "../dialogs/NewServerDialog";
+import { DeleteServerDialog } from "../dialogs/DeleteServerDialog";
 import { api } from "../lib/api";
 import { refreshInstances, stoppedSnapshot, useStore } from "../state/store";
 import { requestLaunch, resetWorld, runAction } from "../state/actions";
@@ -19,6 +20,8 @@ export function Dashboard({ onOpen }: DashboardProps) {
   const actionErrors = useStore((s) => s.actionErrors);
   const tunnels = useStore((s) => s.playit?.tunnels);
   const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const deleting = instances.find((i) => i.id === deletingId);
 
   const online = instances.filter((i) => runtime[i.id]?.state === "online").length;
 
@@ -49,6 +52,7 @@ export function Dashboard({ onOpen }: DashboardProps) {
             onKill={() => runAction(inst.id, () => api.killServer(inst.id))}
             onReset={(seed, hardcore) => resetWorld(inst.id, seed, hardcore)}
             onRetry={() => runAction(inst.id, () => api.retryProvision(inst.id))}
+            onDelete={() => setDeletingId(inst.id)}
           />
         ))}
         <button type="button" className="new-server-card" onClick={() => setCreating(true)}>
@@ -56,6 +60,7 @@ export function Dashboard({ onOpen }: DashboardProps) {
           New server
         </button>
       </div>
+      {deleting && <DeleteServerDialog instance={deleting} onClose={() => setDeletingId(null)} />}
       {creating && (
         <NewServerDialog
           onClose={() => setCreating(false)}

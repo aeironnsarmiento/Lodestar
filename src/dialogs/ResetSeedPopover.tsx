@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { GlassButton } from "../components/glass/GlassButton";
 import { GlassInput, Switch } from "../components/glass/GlassInput";
 import { GlassPanel } from "../components/glass/GlassPanel";
@@ -19,8 +20,9 @@ interface ResetButtonProps {
  */
 export function ResetButton({ disabled, size = "md", hardcore = false, onReset }: ResetButtonProps) {
   const [open, setOpen] = useState(false);
+  const anchor = useRef<HTMLSpanElement>(null);
   return (
-    <span className="split-button">
+    <span className="split-button" ref={anchor}>
       <GlassButton
         size={size}
         icon={<Icon name="reset" size={size === "sm" ? 14 : 16} />}
@@ -46,6 +48,7 @@ export function ResetButton({ disabled, size = "md", hardcore = false, onReset }
       />
       {open && (
         <ResetSeedPopover
+          anchor={anchor.current}
           hardcore={hardcore}
           onClose={() => setOpen(false)}
           onReset={(seed, hc) => {
@@ -59,19 +62,53 @@ export function ResetButton({ disabled, size = "md", hardcore = false, onReset }
 }
 
 interface ResetSeedPopoverProps {
+  /** The element the popover opens under; clicks on it do not count as outside. */
+  anchor: HTMLElement | null;
   hardcore: boolean;
   onClose: () => void;
   onReset: (seed: string | null, hardcore: boolean) => void;
 }
 
-export function ResetSeedPopover({ hardcore: initialHardcore, onClose, onReset }: ResetSeedPopoverProps) {
+const POPOVER_WIDTH = 270;
+const EDGE = 12;
+
+/**
+ * Where the popover goes: under the anchor, right edges aligned, kept inside the
+ * window; above the anchor when there is no room below.
+ */
+function placement(anchor: HTMLElement | null, height: number): CSSProperties {
+  if (!anchor) return { visibility: "hidden" };
+  const r = anchor.getBoundingClientRect();
+  const left = Math.min(Math.max(r.right - POPOVER_WIDTH, EDGE), window.innerWidth - POPOVER_WIDTH - EDGE);
+  const below = r.bottom + 8;
+  const top = below + height > window.innerHeight - EDGE && r.top - 8 - height > EDGE ? r.top - 8 - height : below;
+  return { position: "fixed", top, left, width: POPOVER_WIDTH };
+}
+
+export function ResetSeedPopover({ anchor, hardcore: initialHardcore, onClose, onReset }: ResetSeedPopoverProps) {
   const [seed, setSeed] = useState("");
   const [hardcore, setHardcore] = useState(initialHardcore);
   const ref = useRef<HTMLDivElement>(null);
+  const [style, setStyle] = useState<CSSProperties>({ visibility: "hidden" });
+
+  // Rendered on document.body so the page's scroll area and the window frame cannot
+  // clip it; it follows its button while the page scrolls or the window resizes.
+  useLayoutEffect(() => {
+    const place = () => setStyle(placement(anchor, ref.current?.offsetHeight ?? 0));
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [anchor]);
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      const target = e.target as Node;
+      if (ref.current?.contains(target) || anchor?.contains(target)) return;
+      onClose();
     };
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("mousedown", onDown);
@@ -80,10 +117,10 @@ export function ResetSeedPopover({ hardcore: initialHardcore, onClose, onReset }
       document.removeEventListener("mousedown", onDown);
       window.removeEventListener("keydown", onKey);
     };
-  }, [onClose]);
+  }, [anchor, onClose]);
 
-  return (
-    <div ref={ref} onClick={(e) => e.stopPropagation()}>
+  return createPortal(
+    <div ref={ref} className="popover-anchor" style={style} onClick={(e) => e.stopPropagation()}>
       <GlassPanel layer tone="raised" className="popover" role="dialog" aria-label="New world options">
         <form
           className="stack"
@@ -109,6 +146,7 @@ export function ResetSeedPopover({ hardcore: initialHardcore, onClose, onReset }
           </GlassButton>
         </form>
       </GlassPanel>
-    </div>
+    </div>,
+    document.body,
   );
 }

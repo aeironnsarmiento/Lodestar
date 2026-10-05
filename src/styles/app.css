@@ -405,6 +405,11 @@
   margin-top: auto;
 }
 
+/* Delete sits apart from the run controls, at the far end of the row. */
+.server-card-actions .card-delete {
+  margin-left: auto;
+}
+
 .card-error {
   font-size: 0.78rem;
 }
@@ -637,12 +642,11 @@
   transform: translateY(-2px) rotate(45deg);
 }
 
+.popover-anchor {
+  z-index: 40;
+}
+
 .popover {
-  position: absolute;
-  z-index: 30;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 270px;
   padding: var(--gap-md);
   border-radius: var(--radius-md);
   cursor: default;

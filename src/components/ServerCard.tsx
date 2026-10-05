@@ -20,6 +20,8 @@ interface ServerCardProps {
   onKill?: () => void;
   onReset?: (seed: string | null, hardcore: boolean) => void;
   onRetry: () => void;
+  /** Asks to delete the server; only offered while it is not running. */
+  onDelete?: () => void;
 }
 
 export function badgeState(instance: Instance, snap: Snapshot): BadgeState {
@@ -47,6 +49,7 @@ export function ServerCard({
   onKill,
   onReset,
   onRetry,
+  onDelete,
 }: ServerCardProps) {
   const badge = badgeState(instance, snap);
   const ready = instance.provision.state === "ready";
@@ -55,6 +58,7 @@ export function ServerCard({
   const canLaunch = ready && (s === "stopped" || s === "crashed");
   const canStop = s === "starting" || s === "online";
   const canReset = ready && (s === "stopped" || s === "online" || s === "crashed");
+  const canDelete = (s === "stopped" || s === "crashed") && instance.provision.state !== "running";
   const pct = progress?.total ? Math.round((progress.done / progress.total) * 100) : null;
 
   return (
@@ -145,6 +149,19 @@ export function ServerCard({
               <GlassButton size="sm" iconOnly aria-label="Restart" title="Restart" icon={<Icon name="restart" size={14} />} onClick={stop(onRestart)} />
             )}
           </>
+        )}
+        {onDelete && (
+          <GlassButton
+            size="sm"
+            iconOnly
+            variant="danger"
+            className="card-delete"
+            aria-label={`Delete ${instance.name}`}
+            title={canDelete ? "Delete server" : "Stop the server to delete it"}
+            icon={<Icon name="trash" size={14} />}
+            disabled={!canDelete}
+            onClick={stop(onDelete)}
+          />
         )}
       </footer>
     </article>

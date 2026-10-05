@@ -21,6 +21,32 @@ describe("Dashboard", () => {
     resetStore();
   });
 
+  it("deletes a stopped server from its card after confirming, but not a running one", async () => {
+    const user = userEvent.setup();
+    const stopped = makeInstance({ id: "old", name: "Old world" });
+    const online = makeInstance({ id: "live", name: "Live", port: 25566 });
+    let instances = [stopped, online];
+    invoke.mockImplementation((cmd: string) => {
+      if (cmd === "delete_instance") {
+        instances = [online];
+        return Promise.resolve(null);
+      }
+      if (cmd === "list_instances") return Promise.resolve(instances);
+      return Promise.resolve(null);
+    });
+    setState({ instances, runtime: { live: makeSnapshot({ id: "live", state: "online", port: 25566 }) } });
+    render(<Dashboard onOpen={noop} />);
+
+    expect(screen.getByRole("button", { name: "Delete Live" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Delete Old world" }));
+    const dialog = screen.getByRole("dialog", { name: "Delete Old world?" });
+    await user.click(within(dialog).getByRole("button", { name: /delete forever/i }));
+
+    expect(invoke).toHaveBeenCalledWith("delete_instance", { id: "old" });
+    await waitFor(() => expect(screen.queryByRole("article", { name: "Old world" })).not.toBeInTheDocument());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   it("creates a Fabric 26.3 server that shows setup progress, then Stopped when ready", async () => {
     const user = userEvent.setup();
     const created = makeInstance({ provision: { state: "pending" } });
