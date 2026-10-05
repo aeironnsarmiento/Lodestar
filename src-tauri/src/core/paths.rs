@@ -17,7 +17,7 @@ impl Paths {
     pub fn default_root() -> PathBuf {
         let base = std::env::var_os("APPDATA")
             .map(PathBuf::from)
-            .unwrap_or_else(|| std::env::temp_dir());
+            .unwrap_or_else(std::env::temp_dir);
         base.join("Glasscraft")
     }
 

@@ -1,0 +1,78 @@
+[
+ {
+  "game_versions": [
+   "26.3"
+  ],
+  "loaders": [
+   "fabric",
+   "quilt"
+  ],
+  "environment": "client_or_server_prefers_both",
+  "id": "xS0Q8LSi",
+  "project_id": "gvQqBUqZ",
+  "author_id": "uhPSqlnd",
+  "featured": false,
+  "name": "Lithium 0.26.2 for Fabric",
+  "version_number": "mc26.3-0.26.2-fabric",
+  "changelog": "",
+  "changelog_url": null,
+  "date_published": "2026-09-28T03:43:35.593224Z",
+  "downloads": 283990,
+  "version_type": "release",
+  "status": "listed",
+  "requested_status": null,
+  "files": [
+   {
+    "id": "z35EfMHn",
+    "hashes": {
+     "sha512": "4d7fee66132eedc71feab9390b92c95d7058edbdad0fecfac1d836a2950b97a7ca463afbede61c7ef361ce65e1f927ab9e89dde5bf2e0e0ce486afb5c5dbee40",
+     "sha1": "dd5a4ec2c68d7601d8bce9076f789c55a5f8bef3"
+    },
+    "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/xS0Q8LSi/lithium-fabric-0.26.2%2Bmc26.3.jar",
+    "filename": "lithium-fabric-0.26.2+mc26.3.jar",
+    "primary": true,
+    "size": 914543,
+    "file_type": null
+   }
+  ],
+  "dependencies": []
+ },
+ {
+  "game_versions": [
+   "26.3"
+  ],
+  "loaders": [
+   "fabric",
+   "quilt"
+  ],
+  "environment": "client_or_server_prefers_both",
+  "id": "WXHRsMRl",
+  "project_id": "gvQqBUqZ",
+  "author_id": "uhPSqlnd",
+  "featured": false,
+  "name": "Lithium 0.26.1 for Fabric",
+  "version_number": "mc26.3-0.26.1-fabric",
+  "changelog": "",
+  "changelog_url": null,
+  "date_published": "2026-09-16T14:39:40.495837Z",
+  "downloads": 739302,
+  "version_type": "release",
+  "status": "listed",
+  "requested_status": null,
+  "files": [
+   {
+    "id": "BNC5cVEt",
+    "hashes": {
+     "sha1": "91e91c955650afaf98e4acebee060a58ac99ade5",
+     "sha512": "acbb9b037a203f005e03a20bf1d9866019384abb5ad27664808a12b919639a2501ecb52f8f0d77d27e1409935b0dbdbb70e01ac466480c0ae421ee403f649c59"
+    },
+    "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/WXHRsMRl/lithium-fabric-0.26.1%2Bmc26.3.jar",
+    "filename": "lithium-fabric-0.26.1+mc26.3.jar",
+    "primary": true,
+    "size": 915429,
+    "file_type": null
+   }
+  ],
+  "dependencies": []
+ }
+]

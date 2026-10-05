@@ -1,0 +1,22 @@
+{
+ "id": 152,
+ "time": "2026-10-05T02:24:56Z",
+ "channel": "BETA",
+ "commits": [
+  {
+   "sha": "1a7b626576d41a6ddb0e3610ec0a1e3e59352093",
+   "time": "2026-10-05T02:24:40Z",
+   "message": "Bump JLine to 4.4.6, drop JNI backend as Paper compiles to Java 25 (#14323)"
+  }
+ ],
+ "downloads": {
+  "server:default": {
+   "name": "paper-26.3-152.jar",
+   "checksums": {
+    "sha256": "034b99f3278d985f5d723ad9b02c65c459600223fa489534ebb4e9bbbb3f68e9"
+   },
+   "size": 54172695,
+   "url": "https://fill-data.papermc.io/v1/objects/034b99f3278d985f5d723ad9b02c65c459600223fa489534ebb4e9bbbb3f68e9/paper-26.3-152.jar"
+  }
+ }
+}

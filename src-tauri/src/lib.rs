@@ -1,5 +1,7 @@
 pub mod commands;
 pub mod core;
+pub mod download;
+pub mod providers;
 
 use std::sync::Arc;
 
