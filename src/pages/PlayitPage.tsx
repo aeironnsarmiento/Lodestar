@@ -61,7 +61,7 @@ export function PlayitPage() {
           {state === "notSetUp" && (
             <div className="stack">
               <p style={{ margin: 0 }}>
-                Glasscraft runs its own playit.gg agent and gives each server a public address. Link a free playit.gg
+                Lodestar runs its own playit.gg agent and gives each server a public address. Link a free playit.gg
                 account once; the browser opens to approve it.
               </p>
               {playit?.message && <p className="error-text">{playit.message}</p>}
@@ -75,7 +75,7 @@ export function PlayitPage() {
           {state === "installing" && <p className="muted">Downloading and verifying the playit.gg agent…</p>}
           {state === "waitingForClaim" && (
             <div className="stack">
-              <p style={{ margin: 0 }}>{playit?.message ?? "Approve Glasscraft on playit.gg to finish linking."}</p>
+              <p style={{ margin: 0 }}>{playit?.message ?? "Approve Lodestar on playit.gg to finish linking."}</p>
               {playit?.claimUrl && <p className="mono address">{playit.claimUrl}</p>}
               <div className="row">
                 <GlassButton

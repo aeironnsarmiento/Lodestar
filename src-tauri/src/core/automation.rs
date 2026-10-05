@@ -75,7 +75,7 @@ impl App {
                 });
             }
             CrashDecision::GiveUp => {
-                let msg = "The server kept crashing, so Glasscraft stopped restarting it. Check the console for the error, then launch it again.".to_string();
+                let msg = "The server kept crashing, so Lodestar stopped restarting it. Check the console for the error, then launch it again.".to_string();
                 self.supervisor.note(id, &msg);
                 self.supervisor.give_up(id, msg);
             }

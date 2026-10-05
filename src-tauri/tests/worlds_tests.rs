@@ -4,10 +4,10 @@ use std::time::Duration;
 
 use chrono::{Local, TimeZone};
 use common::{console_text, fixture_server, ready_instance, test_app, test_app_with};
-use glasscraft_lib::core::paths::Paths;
-use glasscraft_lib::supervisor::ServerState;
-use glasscraft_lib::worlds::properties::{merge, read_value};
-use glasscraft_lib::worlds::{list_worlds, new_world, prune, world_seed, worlds_dir, KEEP_WORLDS};
+use lodestar_lib::core::paths::Paths;
+use lodestar_lib::supervisor::ServerState;
+use lodestar_lib::worlds::properties::{merge, read_value};
+use lodestar_lib::worlds::{list_worlds, new_world, prune, world_seed, worlds_dir, KEEP_WORLDS};
 
 const WAIT: Duration = Duration::from_secs(10);
 
@@ -56,7 +56,7 @@ async fn reset_on_an_online_server_stops_it_and_starts_a_new_random_seed_world()
     // The previous world is kept with its seed.
     assert!(list_worlds(&server_dir, Some(&run)).iter().any(|w| w.name == first && w.seed.is_some()));
 
-    app.supervisor.stop_and_wait(&inst.id, glasscraft_lib::supervisor::StopReason::User).await.unwrap();
+    app.supervisor.stop_and_wait(&inst.id, lodestar_lib::supervisor::StopReason::User).await.unwrap();
 }
 
 #[tokio::test]
@@ -74,7 +74,7 @@ async fn reset_with_an_entered_seed_records_and_uses_it() {
     assert_eq!(std::fs::read_to_string(worlds_dir(&server_dir).join(&run).join("seed.txt")).unwrap(), "speedrun123");
     assert_eq!(read_value(&server_dir, "level-seed").unwrap(), "speedrun123");
     assert!(console_text(&app, &inst.id).iter().any(|l| l.contains("Using seed speedrun123")));
-    app.supervisor.stop_and_wait(&inst.id, glasscraft_lib::supervisor::StopReason::User).await.unwrap();
+    app.supervisor.stop_and_wait(&inst.id, lodestar_lib::supervisor::StopReason::User).await.unwrap();
 }
 
 #[tokio::test]
@@ -101,7 +101,7 @@ async fn a_reset_with_ten_kept_worlds_deletes_the_oldest_and_keeps_ten() {
     assert!(!kept.contains(&names[0]), "the oldest world was deleted");
     assert!(kept.contains(&run));
     assert_eq!(kept[0], run, "newest first");
-    app.supervisor.stop_and_wait(&inst.id, glasscraft_lib::supervisor::StopReason::User).await.unwrap();
+    app.supervisor.stop_and_wait(&inst.id, lodestar_lib::supervisor::StopReason::User).await.unwrap();
 }
 
 #[tokio::test]
@@ -124,7 +124,7 @@ async fn play_this_world_makes_an_older_run_the_next_start() {
 
     assert!(app.switch_world(&inst.id, "run_not-a-world").is_err());
     assert!(app.switch_world(&inst.id, "..\\..\\escape").is_err());
-    app.supervisor.stop_and_wait(&inst.id, glasscraft_lib::supervisor::StopReason::User).await.unwrap();
+    app.supervisor.stop_and_wait(&inst.id, lodestar_lib::supervisor::StopReason::User).await.unwrap();
 }
 
 #[test]
@@ -205,5 +205,5 @@ async fn the_host_is_opped_when_the_server_comes_online() {
     app.launch(&inst.id).await.unwrap();
     app.supervisor.wait_for(&inst.id, WAIT, |s| s == ServerState::Online).await.unwrap();
     eventually(|| console_text(&app, &inst.id).iter().any(|l| l.contains("Made Speedy a server operator"))).await;
-    app.supervisor.stop_and_wait(&inst.id, glasscraft_lib::supervisor::StopReason::User).await.unwrap();
+    app.supervisor.stop_and_wait(&inst.id, lodestar_lib::supervisor::StopReason::User).await.unwrap();
 }

@@ -1,5 +1,5 @@
 //! A Windows Job Object with KILL_ON_JOB_CLOSE (KTD4). Every child process is put in
-//! it, so when Glasscraft exits for any reason (including a crash) Windows kills the
+//! it, so when Lodestar exits for any reason (including a crash) Windows kills the
 //! Java servers and the playit agent and no port stays held by an orphan.
 
 use std::mem::{size_of, zeroed};

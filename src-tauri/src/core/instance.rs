@@ -171,7 +171,7 @@ impl Default for Instance {
             max_players: 10,
             view_distance: 10,
             simulation_distance: 10,
-            motd: "A Glasscraft server".into(),
+            motd: "A Lodestar server".into(),
             online_mode: true,
             op_name: String::new(),
             auto_start: false,

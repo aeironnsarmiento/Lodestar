@@ -247,18 +247,18 @@ impl PlayitManager {
             let mut i = self.inner.lock().unwrap();
             i.state = LinkState::WaitingForClaim;
             i.claim_url = Some(url.clone());
-            i.message = Some("Open the link and approve Glasscraft on playit.gg.".into());
+            i.message = Some("Open the link and approve Lodestar on playit.gg.".into());
             i.cancel_claim = cancel.clone();
         }
         self.emit();
 
         let mgr = self.clone();
         tokio::spawn(async move {
-            let version = format!("Glasscraft {}", env!("CARGO_PKG_VERSION"));
+            let version = format!("Lodestar {}", env!("CARGO_PKG_VERSION"));
             let status_mgr = mgr.clone();
             let result = claim::wait_for_secret(&mgr.api, &code, &version, mgr.config.poll, &cancel, move |s| {
                 if s == ClaimSetup::WaitingForUser {
-                    status_mgr.inner.lock().unwrap().message = Some("Approve Glasscraft in your browser to finish.".into());
+                    status_mgr.inner.lock().unwrap().message = Some("Approve Lodestar in your browser to finish.".into());
                     status_mgr.emit();
                 }
             })

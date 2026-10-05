@@ -17,7 +17,7 @@ pub fn is_pending(run: &RunData, id: &str) -> bool {
 }
 
 pub fn tunnel_name(port: u16) -> String {
-    format!("Glasscraft {port}")
+    format!("Lodestar {port}")
 }
 
 /// A user-facing message for a tunnel create failure, and whether it means the

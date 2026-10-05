@@ -124,7 +124,7 @@ export function SettingsTab({ instance, running, onDeleted }: SettingsTabProps) 
         <Row label="Your Minecraft name" hint="Made an operator whenever the server comes online">
           <GlassInput aria-label="Your Minecraft name" placeholder="e.g. Steve" value={draft.opName} onChange={(e) => set("opName", e.target.value.trim())} />
         </Row>
-        <Row label="Start with the app" hint="Launch this server when Glasscraft opens">
+        <Row label="Start with the app" hint="Launch this server when Lodestar opens">
           <Switch label="Start with the app" checked={draft.autoStart} onChange={(v) => set("autoStart", v)} />
         </Row>
         {draft.serverType === "fabric" && (

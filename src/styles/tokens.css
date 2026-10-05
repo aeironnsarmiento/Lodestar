@@ -7,8 +7,8 @@
   --font-sans: "Geist Variable", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono Variable", "Cascadia Mono", Consolas, monospace;
 
-  /* --- Wallpaper ----------------------------------------------------------- */
-  --bg-image: url("../assets/backgrounds/aurora.svg");
+  /* --- Wallpaper (Frost unless Settings picks another) ---------------------- */
+  --bg-image: url("../assets/backgrounds/frost.svg");
 
   /* --- Glass material ------------------------------------------------------ */
   --glass-alpha-frame: 0.55;
@@ -108,7 +108,15 @@
   --scrim: rgb(200 210 228 / 0.4);
 }
 
-/* --- Wallpaper choice (Settings → Appearance); none set = follow the theme -- */
+/* --- Wallpaper choice (Settings → Appearance) ------------------------------ */
+
+/* "Match theme": Aurora when dark, Frost when light. */
+:root[data-wallpaper="auto"] {
+  --bg-image: url("../assets/backgrounds/aurora.svg");
+}
+:root[data-wallpaper="auto"][data-theme="light"] {
+  --bg-image: url("../assets/backgrounds/frost.svg");
+}
 
 :root[data-wallpaper="aurora"] {
   --bg-image: url("../assets/backgrounds/aurora.svg");

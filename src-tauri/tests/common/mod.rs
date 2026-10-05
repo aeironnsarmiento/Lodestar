@@ -223,29 +223,29 @@ pub fn jre_zip(major: u32) -> Vec<u8> {
 
 /// An `App` rooted at `root` whose servers run `fake_mc` instead of Java and whose
 /// downloads go to `server`.
-pub fn test_app(server: &TestServer, root: &std::path::Path) -> std::sync::Arc<glasscraft_lib::core::app::App> {
+pub fn test_app(server: &TestServer, root: &std::path::Path) -> std::sync::Arc<lodestar_lib::core::app::App> {
     test_app_with(server, root, |_| {})
 }
 
 pub fn test_app_with(
     server: &TestServer,
     root: &std::path::Path,
-    tweak: impl FnOnce(&mut glasscraft_lib::core::app::AppConfig),
-) -> std::sync::Arc<glasscraft_lib::core::app::App> {
-    use glasscraft_lib::core::app::{App, AppConfig};
-    let mut config = AppConfig::new(glasscraft_lib::core::paths::Paths::new(root));
-    config.endpoints = glasscraft_lib::providers::Endpoints::local(&server.base);
+    tweak: impl FnOnce(&mut lodestar_lib::core::app::AppConfig),
+) -> std::sync::Arc<lodestar_lib::core::app::App> {
+    use lodestar_lib::core::app::{App, AppConfig};
+    let mut config = AppConfig::new(lodestar_lib::core::paths::Paths::new(root));
+    config.endpoints = lodestar_lib::providers::Endpoints::local(&server.base);
     config.adoptium_api = format!("{}/adoptium", server.base);
     config.download_backoff = std::time::Duration::from_millis(5);
     config.java_override = Some(PathBuf::from(env!("CARGO_BIN_EXE_fake_mc")));
     tweak(&mut config);
-    App::new(config, glasscraft_lib::core::events::MemorySink::new()).unwrap()
+    App::new(config, lodestar_lib::core::events::MemorySink::new()).unwrap()
 }
 
 /// Creates an instance that is already provisioned (no downloads), on a free port,
 /// with the EULA accepted.
-pub fn ready_instance(app: &glasscraft_lib::core::app::App, name: &str) -> glasscraft_lib::core::instance::Instance {
-    use glasscraft_lib::core::instance::{LaunchInfo, NewInstance, Provision, ServerType};
+pub fn ready_instance(app: &lodestar_lib::core::app::App, name: &str) -> lodestar_lib::core::instance::Instance {
+    use lodestar_lib::core::instance::{LaunchInfo, NewInstance, Provision, ServerType};
     app.accept_eula().unwrap();
     let inst = app
         .create_instance(NewInstance {
@@ -267,6 +267,6 @@ pub fn ready_instance(app: &glasscraft_lib::core::app::App, name: &str) -> glass
 }
 
 /// Console text of an instance.
-pub fn console_text(app: &glasscraft_lib::core::app::App, id: &str) -> Vec<String> {
+pub fn console_text(app: &lodestar_lib::core::app::App, id: &str) -> Vec<String> {
     app.console(id).into_iter().map(|l| l.text).collect()
 }

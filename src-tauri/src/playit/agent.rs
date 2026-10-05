@@ -14,7 +14,7 @@ use crate::supervisor::job_object::JobObject;
 pub const AGENT_URL: &str =
     "https://github.com/playit-cloud/playit-agent/releases/download/v1.0.10/playit-windows-x86_64-signed.exe";
 pub const AGENT_SHA256: &str = "2dbdaad119844cbbc062cc9774b8b462afa5f1b4b7832a9fc5ef4676cae887cf";
-pub const SOCKET_PATH: &str = r"\\.\pipe\glasscraft-playitd";
+pub const SOCKET_PATH: &str = r"\\.\pipe\lodestar-playitd";
 
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
@@ -60,7 +60,7 @@ pub fn spawn(program: &Path, playit_dir: &Path, job: Option<&JobObject>) -> Resu
     let mut child = cmd.spawn().with_context(|| format!("Could not start {}", program.display()))?;
     if let Some(job) = job {
         if let Err(e) = job.assign(&child) {
-            eprintln!("glasscraft: could not add playitd to the job object: {e:#}");
+            eprintln!("lodestar: could not add playitd to the job object: {e:#}");
         }
     }
     let stdin = child.stdin.take();

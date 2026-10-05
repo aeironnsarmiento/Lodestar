@@ -6,7 +6,7 @@
   "pending": [
    {
     "id": "8a1c3e55-0d4f-4b8e-a5b0-6f7c2d9e1a33",
-    "name": "Glasscraft 25565",
+    "name": "Lodestar 25565",
     "tunnel_type": "minecraft-java",
     "tunnel_type_display": "Minecraft Java",
     "port_type": "tcp",

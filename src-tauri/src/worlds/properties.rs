@@ -1,5 +1,5 @@
 //! `server.properties` merge writer: keeps the user's own keys, comments and order,
-//! and sets the keys Glasscraft manages.
+//! and sets the keys Lodestar manages.
 
 use std::fs;
 use std::path::Path;
@@ -8,7 +8,7 @@ use anyhow::Result;
 
 use crate::core::instance::Instance;
 
-/// Keys Glasscraft owns, with values from the instance and the world seed.
+/// Keys Lodestar owns, with values from the instance and the world seed.
 pub fn managed_properties(inst: &Instance, seed: &str) -> Vec<(&'static str, String)> {
     vec![
         ("server-port", inst.port.to_string()),
@@ -73,7 +73,7 @@ pub fn merge(existing: &str, set: &[(&str, String)], defaults: &[(&str, &str)]) 
     }
     let present: Vec<String> = lines.iter().filter_map(|l| key_of(l).map(str::to_string)).collect();
     if lines.is_empty() {
-        lines.push("#Minecraft server properties - managed by Glasscraft (change settings in the app)".into());
+        lines.push("#Minecraft server properties - managed by Lodestar (change settings in the app)".into());
     }
     for (i, (k, v)) in set.iter().enumerate() {
         if !seen[i] {

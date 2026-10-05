@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use common::{sha1_hex, sha256_hex, Response, TestServer};
-use glasscraft_lib::download::{extract_zip_flatten, no_progress, Downloader, Hash};
+use lodestar_lib::download::{extract_zip_flatten, no_progress, Downloader, Hash};
 
 fn fast() -> Downloader {
     Downloader::new().with_backoff(Duration::from_millis(10))

@@ -24,7 +24,7 @@ impl KeepAwake {
     pub fn new() -> Self {
         let (tx, rx) = mpsc::channel::<bool>();
         std::thread::Builder::new()
-            .name("glasscraft-keep-awake".into())
+            .name("lodestar-keep-awake".into())
             .spawn(move || {
                 for awake in rx {
                     unsafe {

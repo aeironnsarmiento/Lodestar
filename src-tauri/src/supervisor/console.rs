@@ -60,7 +60,7 @@ impl Console {
         }
         let file = OpenOptions::new().create(true).append(true).open(log_path)?;
         self.log = Some(BufWriter::new(file));
-        let marker = format!("---- Glasscraft session {} ----", chrono::Local::now().format("%Y-%m-%d %H:%M:%S"));
+        let marker = format!("---- Lodestar session {} ----", chrono::Local::now().format("%Y-%m-%d %H:%M:%S"));
         self.push(marker);
         Ok(())
     }
@@ -138,5 +138,5 @@ pub fn read_tail(path: &Path, max_lines: usize) -> Vec<String> {
 }
 
 pub fn log_path(server_dir: &Path) -> PathBuf {
-    server_dir.join("logs").join("glasscraft-console.log")
+    server_dir.join("logs").join("lodestar-console.log")
 }

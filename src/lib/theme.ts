@@ -1,9 +1,9 @@
 export type Theme = "light" | "dark";
 
-const THEME_KEY = "glasscraft.theme";
-const EFFECTS_KEY = "glasscraft.reduceEffects";
-const WALLPAPER_KEY = "glasscraft.wallpaper";
-const OPACITY_KEY = "glasscraft.glassOpacity";
+const THEME_KEY = "lodestar.theme";
+const EFFECTS_KEY = "lodestar.reduceEffects";
+const WALLPAPER_KEY = "lodestar.wallpaper";
+const OPACITY_KEY = "lodestar.glassOpacity";
 
 function storage(): Storage | null {
   try {
@@ -39,18 +39,17 @@ export function applyReduceEffects(reduce: boolean): void {
   storage()?.setItem(EFFECTS_KEY, reduce ? "1" : "0");
 }
 
-/** "auto" follows the theme: Aurora when dark, Frost when light. */
-export const WALLPAPERS = ["auto", "aurora", "orchid", "dune", "graphite", "frost"] as const;
+/** Frost by default; "auto" follows the theme (Aurora when dark, Frost when light). */
+export const WALLPAPERS = ["frost", "auto", "aurora", "orchid", "dune", "graphite"] as const;
 export type Wallpaper = (typeof WALLPAPERS)[number];
 
 export function readStoredWallpaper(): Wallpaper {
   const w = storage()?.getItem(WALLPAPER_KEY);
-  return (WALLPAPERS as readonly string[]).includes(w ?? "") ? (w as Wallpaper) : "auto";
+  return (WALLPAPERS as readonly string[]).includes(w ?? "") ? (w as Wallpaper) : "frost";
 }
 
 export function applyWallpaper(wallpaper: Wallpaper): void {
-  if (wallpaper === "auto") delete document.documentElement.dataset.wallpaper;
-  else document.documentElement.dataset.wallpaper = wallpaper;
+  document.documentElement.dataset.wallpaper = wallpaper;
   storage()?.setItem(WALLPAPER_KEY, wallpaper);
 }
 

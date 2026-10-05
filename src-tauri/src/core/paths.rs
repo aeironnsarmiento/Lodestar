@@ -13,12 +13,35 @@ impl Paths {
         Self { root: root.into() }
     }
 
-    /// `%APPDATA%\Glasscraft`.
+    /// `%APPDATA%\Lodestar`.
     pub fn default_root() -> PathBuf {
         let base = std::env::var_os("APPDATA")
             .map(PathBuf::from)
             .unwrap_or_else(std::env::temp_dir);
-        base.join("Glasscraft")
+        base.join("Lodestar")
+    }
+
+    /// The app was called Glasscraft before. If `root` does not exist yet but the old
+    /// `Glasscraft` folder beside it does, move it over so servers, worlds, Java and the
+    /// playit.gg link carry across, and rename each server's console history file.
+    pub fn migrate_legacy_root(root: &Path) -> std::io::Result<bool> {
+        let Some(legacy) = root.parent().map(|p| p.join("Glasscraft")) else {
+            return Ok(false);
+        };
+        if root.exists() || !legacy.is_dir() {
+            return Ok(false);
+        }
+        std::fs::rename(&legacy, root)?;
+        if let Ok(entries) = std::fs::read_dir(root.join("instances")) {
+            for entry in entries.flatten() {
+                let logs = entry.path().join("server").join("logs");
+                let old = logs.join("glasscraft-console.log");
+                if old.is_file() {
+                    let _ = std::fs::rename(&old, logs.join("lodestar-console.log"));
+                }
+            }
+        }
+        Ok(true)
     }
 
     pub fn root(&self) -> &Path {

@@ -29,7 +29,7 @@ describe("playit.gg page", () => {
   it("shows the claim link while waiting for approval", () => {
     act(() =>
       setState({
-        playit: { state: "waitingForClaim", claimUrl: "https://playit.gg/claim/0a1b2c3d4e", message: "Approve Glasscraft in your browser to finish.", tunnels: [] },
+        playit: { state: "waitingForClaim", claimUrl: "https://playit.gg/claim/0a1b2c3d4e", message: "Approve Lodestar in your browser to finish.", tunnels: [] },
       }),
     );
     render(<PlayitPage />);

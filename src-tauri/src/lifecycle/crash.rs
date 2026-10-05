@@ -1,6 +1,6 @@
 //! Crash policy (R5, KTD13): an exit nobody asked for is a crash. The server is
 //! restarted after 5 s, 15 s and 45 s; if it crashes again after those three
-//! automatic restarts within a rolling 10 minutes, Glasscraft stops retrying and
+//! automatic restarts within a rolling 10 minutes, Lodestar stops retrying and
 //! leaves it Stopped with a crash notice. These limits are fixed in v1.
 
 use std::collections::HashMap;

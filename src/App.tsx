@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NAV_ITEMS, Sidebar, type AppArea } from "./components/Sidebar";
+import { Sidebar, type AppArea } from "./components/Sidebar";
 import { TopBar } from "./components/TopBar";
 import { HeaderSlotContext } from "./components/PageHeader";
 import { GlassPanel } from "./components/glass/GlassPanel";
@@ -46,22 +46,6 @@ function App() {
     setServerId(null);
     setArea(next);
   };
-
-  // Single-letter page hotkeys, as on aeirMBP. Never while typing or in a dialog.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
-      const target = e.target as HTMLElement | null;
-      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
-      if (document.querySelector("[role='dialog']")) return;
-      const item = NAV_ITEMS.find((i) => i.hotkey === e.key.toLowerCase());
-      if (!item) return;
-      e.preventDefault();
-      navigate(item.area);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
 
   const toggleTheme = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";

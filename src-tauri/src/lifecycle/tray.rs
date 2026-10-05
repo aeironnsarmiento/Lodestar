@@ -10,11 +10,11 @@ use tauri::{AppHandle, Manager};
 use crate::core::app::App;
 
 pub fn install(app: &AppHandle) -> tauri::Result<()> {
-    let open = MenuItem::with_id(app, "open", "Open Glasscraft", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, "open", "Open Lodestar", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quit (stops all servers)", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open, &PredefinedMenuItem::separator(app)?, &quit_item])?;
     let mut builder = TrayIconBuilder::with_id("main")
-        .tooltip("Glasscraft")
+        .tooltip("Lodestar")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id.as_ref() {

@@ -2,11 +2,11 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
 
-use glasscraft_lib::core::events::{MemorySink, CONSOLE_BATCH, INSTANCE_STATE};
-use glasscraft_lib::providers::LaunchSpec;
-use glasscraft_lib::supervisor::console::log_path;
-use glasscraft_lib::supervisor::job_object::process_alive;
-use glasscraft_lib::supervisor::{ServerState, StopReason, Supervisor};
+use lodestar_lib::core::events::{MemorySink, CONSOLE_BATCH, INSTANCE_STATE};
+use lodestar_lib::providers::LaunchSpec;
+use lodestar_lib::supervisor::console::log_path;
+use lodestar_lib::supervisor::job_object::process_alive;
+use lodestar_lib::supervisor::{ServerState, StopReason, Supervisor};
 
 const WAIT: Duration = Duration::from_secs(10);
 
@@ -258,7 +258,7 @@ async fn the_console_log_persists_and_the_previous_session_tail_is_readable() {
     let history = sup.console("a");
     assert!(history.iter().all(|l| l.history));
     assert!(history.iter().any(|l| l.text.contains("[Server] remember me")));
-    assert!(history.iter().any(|l| l.text.contains("Glasscraft session")));
+    assert!(history.iter().any(|l| l.text.contains("Lodestar session")));
 }
 
 #[tokio::test]

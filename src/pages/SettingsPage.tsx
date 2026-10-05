@@ -43,7 +43,7 @@ export function SettingsPage({ reduceEffects, onReduceEffects }: SettingsPagePro
           <div className="setting-row">
             <div>
               <div className="label">Close to tray</div>
-              <div className="hint">Closing the window keeps Glasscraft and your servers running in the tray.</div>
+              <div className="hint">Closing the window keeps Lodestar and your servers running in the tray.</div>
             </div>
             <Switch
               label="Close to tray"
@@ -66,7 +66,7 @@ export function SettingsPage({ reduceEffects, onReduceEffects }: SettingsPagePro
           </div>
           <div className="setting-row">
             <div>
-              <div className="label">Quit Glasscraft</div>
+              <div className="label">Quit Lodestar</div>
               <div className="hint">Stops every server cleanly, then closes the app.</div>
             </div>
             <GlassButton size="sm" variant="danger" icon={<Icon name="kill" size={13} />} onClick={() => api.quitApp().catch(() => {})}>

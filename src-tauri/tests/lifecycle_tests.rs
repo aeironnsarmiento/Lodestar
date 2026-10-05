@@ -5,13 +5,13 @@ use std::time::Duration;
 
 use chrono::{Local, NaiveDate, NaiveDateTime, TimeZone};
 use common::{console_text, fixture_server, ready_instance, test_app_with};
-use glasscraft_lib::core::instance::{RestartMode, RestartSchedule};
-use glasscraft_lib::core::paths::Paths;
-use glasscraft_lib::lifecycle::crash::{CrashDecision, CrashPolicy, BACKOFF};
-use glasscraft_lib::lifecycle::scheduler::{tick, Action, ScheduleState};
-use glasscraft_lib::lifecycle::ManualClock;
-use glasscraft_lib::supervisor::job_object::process_alive;
-use glasscraft_lib::supervisor::{ServerState, StopReason};
+use lodestar_lib::core::instance::{RestartMode, RestartSchedule};
+use lodestar_lib::core::paths::Paths;
+use lodestar_lib::lifecycle::crash::{CrashDecision, CrashPolicy, BACKOFF};
+use lodestar_lib::lifecycle::scheduler::{tick, Action, ScheduleState};
+use lodestar_lib::lifecycle::ManualClock;
+use lodestar_lib::supervisor::job_object::process_alive;
+use lodestar_lib::supervisor::{ServerState, StopReason};
 
 const WAIT: Duration = Duration::from_secs(10);
 const FAST: [Duration; 3] = [Duration::from_millis(20), Duration::from_millis(40), Duration::from_millis(80)];

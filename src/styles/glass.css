@@ -353,13 +353,12 @@ h4 {
 
 .brand-mark {
   flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(165deg, #8ee07a 0%, #4fb35c 42%, #7a5534 43%, #5c3f27 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.5),
-    inset 0 -2px 4px rgb(0 0 0 / 0.25);
+  display: block;
+  width: 42px;
+  height: 42px;
+  /* The icon art has a transparent margin; pull it back to the 38px grid. */
+  margin: -2px;
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.25));
 }
 
 .brand-meta {
@@ -428,36 +427,6 @@ h4 {
   white-space: nowrap;
 }
 
-.hotkey {
-  flex: none;
-  min-width: 18px;
-  padding: 1px 5px;
-  border: 1px solid var(--glass-border-quiet);
-  border-radius: var(--radius-xs);
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: var(--ink-faint);
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.sidebar-foot {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: auto 0 0;
-  padding-top: var(--gap-md);
-  font-size: 0.68rem;
-  line-height: 1.7;
-  color: var(--ink-faint);
-}
-
-.sidebar-foot .hotkey {
-  margin-right: 3px;
-}
-
 /* The page header needs the top bar's room first. */
 @media (max-width: 1280px) {
   .pulse {
@@ -478,8 +447,6 @@ h4 {
 
   .brand-meta,
   .nav-label,
-  .nav-item .hotkey,
-  .sidebar-foot,
   .clock,
   .pulse {
     display: none;

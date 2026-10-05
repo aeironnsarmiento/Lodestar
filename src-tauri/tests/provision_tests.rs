@@ -5,13 +5,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use common::{fixture_server, TestServer};
-use glasscraft_lib::core::app::{App, AppConfig};
-use glasscraft_lib::core::events::MemorySink;
-use glasscraft_lib::core::instance::{Instance, LaunchInfo, NewInstance, Provision, ServerType};
-use glasscraft_lib::core::paths::Paths;
-use glasscraft_lib::providers::Endpoints;
-use glasscraft_lib::supervisor::{ServerState, StopReason};
-use glasscraft_lib::worlds::properties::read_value;
+use lodestar_lib::core::app::{App, AppConfig};
+use lodestar_lib::core::events::MemorySink;
+use lodestar_lib::core::instance::{Instance, LaunchInfo, NewInstance, Provision, ServerType};
+use lodestar_lib::core::paths::Paths;
+use lodestar_lib::providers::Endpoints;
+use lodestar_lib::supervisor::{ServerState, StopReason};
+use lodestar_lib::worlds::properties::read_value;
 
 const WAIT: Duration = Duration::from_secs(10);
 

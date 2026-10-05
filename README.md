@@ -1,4 +1,4 @@
-# Glasscraft
+# Lodestar
 
 A Windows app for running Minecraft Java servers on your own PC. Each server is a
 self-contained instance you can create, launch, watch, reset and share from one window —
@@ -9,7 +9,7 @@ no batch files, no manual Java installs, no port forwarding.
 - **Isolated instances.** Vanilla, Paper, Fabric, Forge (1.17+) and NeoForge servers each
   get their own folder, settings, port and worlds. Run several at once.
 - **Guided setup.** Pick a name, type, version (snapshots optional), seed, game mode,
-  difficulty and player limit. Glasscraft downloads and verifies the server files and the
+  difficulty and player limit. Lodestar downloads and verifies the server files and the
   right Java in the background, with progress on the server's card. Failed setups can be
   retried in place.
 - **Managed Java.** The Java version each Minecraft release needs is downloaded as a
@@ -29,7 +29,7 @@ no batch files, no manual Java installs, no port forwarding.
   restarts.
 - **Players panel** to op or kick anyone online.
 - **Join addresses** for this PC, your LAN, and the internet, each one click to copy.
-- **Supervision.** Servers run inside a Windows job object, so closing Glasscraft never leaves
+- **Supervision.** Servers run inside a Windows job object, so closing Lodestar never leaves
   an orphaned `java.exe`. Crashed servers restart automatically.
 - **Scheduled restarts** at set times, either with an in-game countdown or waiting until the
   server is empty.
@@ -45,13 +45,13 @@ no batch files, no manual Java installs, no port forwarding.
 
 ## Playing with friends
 
-Glasscraft manages a [playit.gg](https://playit.gg) agent for you. Link your free playit.gg
+Lodestar manages a [playit.gg](https://playit.gg) agent for you. Link your free playit.gg
 account once and every server gets a public address the first time it launches — friends
 join from anywhere without router setup. Servers that share a port share a tunnel.
 
 ## Install
 
-Run `Glasscraft_<version>_x64-setup.exe`. It installs for your user only, so no administrator
+Run `Lodestar_<version>_x64-setup.exe`. It installs for your user only, so no administrator
 rights are needed, and adds a Start menu entry.
 
 The installer is not code-signed, so Windows SmartScreen may say it "protected your PC".
@@ -59,21 +59,18 @@ Choose **More info → Run anyway**.
 
 ## First run
 
-1. **New server** → pick a name, type, version and world options. Glasscraft downloads Java
+1. **New server** → pick a name, type, version and world options. Lodestar downloads Java
    and the server files in the background; the card shows progress.
-2. **Launch**. The first time, Glasscraft asks you to accept the
+2. **Launch**. The first time, Lodestar asks you to accept the
    [Minecraft EULA](https://aka.ms/MinecraftEULA). It asks once for all servers.
 3. **Windows Firewall** asks whether Java may accept connections. Allow it on
    **private networks** so people on your Wi-Fi can join.
 4. **playit.gg** (sidebar) → **Set up playit.gg**. Your browser opens; sign in or create a
-   free playit.gg account and approve Glasscraft. Free accounts have a small tunnel limit.
-
-Press **D**, **P**, **J** or **S** anywhere to jump to the Dashboard, playit.gg, Java runtimes
-or Settings.
+   free playit.gg account and approve Lodestar. Free accounts have a small tunnel limit.
 
 ## Where things live
 
-Everything is under `%APPDATA%\Glasscraft`:
+Everything is under `%APPDATA%\Lodestar`:
 
 | Path | What |
 |---|---|
@@ -81,7 +78,7 @@ Everything is under `%APPDATA%\Glasscraft`:
 | `instances\<id>\instance.json` | A server's settings |
 | `instances\<id>\server\` | Its server files, `server.properties`, mods or plugins |
 | `instances\<id>\server\worlds\run_<date>\` | One folder per world, with `seed.txt` |
-| `instances\<id>\server\logs\glasscraft-console.log` | The console history |
+| `instances\<id>\server\logs\lodestar-console.log` | The console history |
 | `runtimes\java\jre-<N>\` | Shared Java runtimes |
 | `cache\jars\` | Downloaded server jars, shared between servers |
 | `playit\` | The playit.gg agent, its key (`playit.toml`) and logs |
@@ -109,5 +106,5 @@ Tests never download Minecraft, accept the EULA or call playit.gg: servers are p
 services are opt-in:
 
 ```bash
-GLASSCRAFT_LIVE_TESTS=1 cargo test --manifest-path src-tauri/Cargo.toml live_
+LODESTAR_LIVE_TESTS=1 cargo test --manifest-path src-tauri/Cargo.toml live_
 ```

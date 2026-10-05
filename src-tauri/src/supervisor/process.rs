@@ -32,7 +32,7 @@ pub fn spawn(spec: &LaunchSpec, job: Option<&JobObject>) -> Result<Spawned> {
     if let Some(job) = job {
         // Not fatal: the server still runs, it just would not die with the app.
         if let Err(e) = job.assign(&child) {
-            eprintln!("glasscraft: could not add process to job object: {e:#}");
+            eprintln!("lodestar: could not add process to job object: {e:#}");
         }
     }
     let stdin = child.stdin.take().context("no stdin")?;

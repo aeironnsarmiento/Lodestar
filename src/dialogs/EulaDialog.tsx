@@ -25,7 +25,7 @@ export function EulaDialog({ onAccept, onDecline }: EulaDialogProps) {
       }
     >
       <p>
-        Running a Minecraft server requires agreeing to the Minecraft End User License Agreement. Glasscraft asks once
+        Running a Minecraft server requires agreeing to the Minecraft End User License Agreement. Lodestar asks once
         and remembers your answer for every server.
       </p>
       <p>

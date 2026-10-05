@@ -1,19 +1,19 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-wallpaper="frost">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Glasscraft</title>
+    <title>Lodestar</title>
     <script>
       // Apply the remembered appearance before first paint so the window never flashes the wrong one.
       try {
         var r = document.documentElement;
-        var t = localStorage.getItem("glasscraft.theme");
+        var t = localStorage.getItem("lodestar.theme");
         if (t === "light" || t === "dark") r.dataset.theme = t;
-        if (localStorage.getItem("glasscraft.reduceEffects") === "1") r.dataset.effects = "reduced";
-        var w = localStorage.getItem("glasscraft.wallpaper");
-        if (w && w !== "auto") r.dataset.wallpaper = w;
-        var o = Number(localStorage.getItem("glasscraft.glassOpacity"));
+        if (localStorage.getItem("lodestar.reduceEffects") === "1") r.dataset.effects = "reduced";
+        var w = localStorage.getItem("lodestar.wallpaper");
+        if (/^(auto|aurora|orchid|dune|graphite|frost)$/.test(w || "")) r.dataset.wallpaper = w;
+        var o = Number(localStorage.getItem("lodestar.glassOpacity"));
         if (o >= 0.2 && o <= 0.85) {
           r.style.setProperty("--glass-alpha-frame", String(o));
           r.style.setProperty("--glass-alpha-pane", String(o));

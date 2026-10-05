@@ -1,9 +1,9 @@
 use std::fs;
 
-use glasscraft_lib::core::instance::{NewInstance, ServerType};
-use glasscraft_lib::core::paths::Paths;
-use glasscraft_lib::core::settings::{AppSettings, Theme};
-use glasscraft_lib::core::store::{write_json_atomic, Store};
+use lodestar_lib::core::instance::{NewInstance, ServerType};
+use lodestar_lib::core::paths::Paths;
+use lodestar_lib::core::settings::{AppSettings, Theme};
+use lodestar_lib::core::store::{write_json_atomic, Store};
 
 fn new_instance(name: &str) -> NewInstance {
     NewInstance {
@@ -134,4 +134,26 @@ fn empty_names_are_rejected() {
     let dir = tempfile::tempdir().unwrap();
     let store = Store::open(Paths::new(dir.path())).unwrap();
     assert!(store.create(new_instance("   ")).is_err());
+}
+
+#[test]
+fn the_old_glasscraft_folder_moves_to_the_new_root_once() {
+    let dir = tempfile::tempdir().unwrap();
+    let legacy = dir.path().join("Glasscraft");
+    let logs = legacy.join("instances").join("speedrun").join("server").join("logs");
+    fs::create_dir_all(&logs).unwrap();
+    fs::write(legacy.join("settings.json"), "{}").unwrap();
+    fs::write(logs.join("glasscraft-console.log"), "hello").unwrap();
+
+    let root = dir.path().join("Lodestar");
+    assert!(Paths::migrate_legacy_root(&root).unwrap());
+    assert!(!legacy.exists());
+    assert!(root.join("settings.json").is_file());
+    let moved = root.join("instances").join("speedrun").join("server").join("logs");
+    assert_eq!(fs::read_to_string(moved.join("lodestar-console.log")).unwrap(), "hello");
+
+    // Already migrated (or a fresh install): nothing happens.
+    fs::create_dir_all(&legacy).unwrap();
+    assert!(!Paths::migrate_legacy_root(&root).unwrap());
+    assert!(legacy.exists());
 }

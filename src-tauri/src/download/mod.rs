@@ -13,7 +13,7 @@ use futures_util::StreamExt;
 use serde::de::DeserializeOwned;
 use sha1::Digest;
 
-pub const USER_AGENT: &str = concat!("Glasscraft/", env!("CARGO_PKG_VERSION"), " (Minecraft server manager)");
+pub const USER_AGENT: &str = concat!("Lodestar/", env!("CARGO_PKG_VERSION"), " (Minecraft server manager)");
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Hash {

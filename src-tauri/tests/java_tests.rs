@@ -3,10 +3,10 @@ mod common;
 use std::time::Duration;
 
 use common::{fixture_server, sha256_hex, Response, TestServer};
-use glasscraft_lib::core::paths::Paths;
-use glasscraft_lib::download::{no_progress, Downloader};
-use glasscraft_lib::java::{parse_java_version, target_major, JavaManager};
-use glasscraft_lib::providers::{Endpoints, Providers};
+use lodestar_lib::core::paths::Paths;
+use lodestar_lib::download::{no_progress, Downloader};
+use lodestar_lib::java::{parse_java_version, target_major, JavaManager};
+use lodestar_lib::providers::{Endpoints, Providers};
 
 fn manager(server: &TestServer, root: &std::path::Path) -> JavaManager {
     JavaManager::new(
@@ -136,12 +136,12 @@ async fn instances_for_1_16_1_and_26_3_resolve_java_8_and_25_without_the_system_
     }
 }
 
-/// Opt-in: `GLASSCRAFT_LIVE_TESTS=1 cargo test live_`. Asks Adoptium for the Windows
+/// Opt-in: `LODESTAR_LIVE_TESTS=1 cargo test live_`. Asks Adoptium for the Windows
 /// JREs the app maps to, without downloading them.
 #[tokio::test]
 async fn live_adoptium_has_windows_jres_for_every_target() {
-    if std::env::var("GLASSCRAFT_LIVE_TESTS").ok().as_deref() != Some("1") {
-        eprintln!("skipped: set GLASSCRAFT_LIVE_TESTS=1 to run");
+    if std::env::var("LODESTAR_LIVE_TESTS").ok().as_deref() != Some("1") {
+        eprintln!("skipped: set LODESTAR_LIVE_TESTS=1 to run");
         return;
     }
     let d = Downloader::new();

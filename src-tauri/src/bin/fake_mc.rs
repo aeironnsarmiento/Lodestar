@@ -111,7 +111,7 @@ fn main() {
 /// Spawns a child fake_mc inside a kill-on-close Job Object and waits forever. When
 /// this process is killed, Windows must kill the child too.
 fn job_parent() {
-    let job = glasscraft_lib::supervisor::job_object::JobObject::new_kill_on_close().expect("job");
+    let job = lodestar_lib::supervisor::job_object::JobObject::new_kill_on_close().expect("job");
     let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
     rt.block_on(async {
         let exe = std::env::current_exe().unwrap();

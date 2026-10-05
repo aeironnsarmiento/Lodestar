@@ -78,7 +78,7 @@ impl App {
         std::fs::create_dir_all(&server_dir)?;
         std::fs::write(
             server_dir.join("eula.txt"),
-            "# Accepted in Glasscraft: https://aka.ms/MinecraftEULA\neula=true\n",
+            "# Accepted in Lodestar: https://aka.ms/MinecraftEULA\neula=true\n",
         )?;
         let (run, seed) = self.ensure_current_world(&inst.id)?;
         write_server_properties(&server_dir, inst, &seed)?;

@@ -18,7 +18,7 @@ export function makeInstance(overrides: Partial<Instance> = {}): Instance {
     maxPlayers: 10,
     viewDistance: 10,
     simulationDistance: 10,
-    motd: "A Glasscraft server",
+    motd: "A Lodestar server",
     onlineMode: true,
     opName: "",
     autoStart: false,

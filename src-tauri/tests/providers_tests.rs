@@ -4,11 +4,11 @@ use std::path::Path;
 use std::time::Duration;
 
 use common::{fixture, fixture_server, TestServer};
-use glasscraft_lib::core::instance::{LaunchInfo, ServerType};
-use glasscraft_lib::core::paths::Paths;
-use glasscraft_lib::download::{no_progress, Downloader};
-use glasscraft_lib::providers::modrinth::{self, ModOutcome};
-use glasscraft_lib::providers::{
+use lodestar_lib::core::instance::{LaunchInfo, ServerType};
+use lodestar_lib::core::paths::Paths;
+use lodestar_lib::download::{no_progress, Downloader};
+use lodestar_lib::providers::modrinth::{self, ModOutcome};
+use lodestar_lib::providers::{
     compare_versions, fabric, forge, launch_spec, mojang, neoforge, paper, Endpoints, Providers, VersionKind,
 };
 
@@ -269,12 +269,12 @@ async fn speed_mods_install_and_a_missing_build_is_skipped() {
     assert!(mods.join("my-own-mod.jar").exists(), "user mods are kept");
 }
 
-/// Opt-in check against the real services: `GLASSCRAFT_LIVE_TESTS=1 cargo test live_`.
+/// Opt-in check against the real services: `LODESTAR_LIVE_TESTS=1 cargo test live_`.
 /// Fetches version lists and metadata only; never downloads a server jar.
 #[tokio::test]
 async fn live_providers_resolve_current_versions() {
-    if std::env::var("GLASSCRAFT_LIVE_TESTS").ok().as_deref() != Some("1") {
-        eprintln!("skipped: set GLASSCRAFT_LIVE_TESTS=1 to run");
+    if std::env::var("LODESTAR_LIVE_TESTS").ok().as_deref() != Some("1") {
+        eprintln!("skipped: set LODESTAR_LIVE_TESTS=1 to run");
         return;
     }
     let dir = tempfile::tempdir().unwrap();

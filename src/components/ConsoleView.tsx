@@ -21,7 +21,7 @@ function lineClass(line: ConsoleLine): string {
   const t = line.text;
   const classes = ["console-line"];
   if (line.history) classes.push("history");
-  if (t.startsWith("[Glasscraft]") || t.startsWith("---- Glasscraft")) classes.push("note");
+  if (t.startsWith("[Lodestar]") || t.startsWith("---- Lodestar")) classes.push("note");
   else if (t.startsWith("> ")) classes.push("command");
   else if (/\bERROR\b|Exception|\/FATAL\]/.test(t)) classes.push("error");
   else if (/\/WARN\]/.test(t)) classes.push("warn");

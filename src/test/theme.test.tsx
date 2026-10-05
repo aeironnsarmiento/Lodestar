@@ -23,12 +23,13 @@ describe("theme", () => {
     expect(screen.getByRole("button", { name: /switch to dark mode/i })).toBeInTheDocument();
   });
 
-  it("remembers the wallpaper and glass opacity", () => {
+  it("defaults to Frost and remembers the wallpaper and glass opacity", () => {
+    expect(readStoredWallpaper()).toBe("frost");
     applyWallpaper("orchid");
     expect(document.documentElement.dataset.wallpaper).toBe("orchid");
     expect(readStoredWallpaper()).toBe("orchid");
     applyWallpaper("auto");
-    expect(document.documentElement.dataset.wallpaper).toBeUndefined();
+    expect(document.documentElement.dataset.wallpaper).toBe("auto");
 
     applyGlassOpacity(2);
     expect(readStoredGlassOpacity()).toBe(0.85);

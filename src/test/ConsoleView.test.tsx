@@ -8,7 +8,7 @@ import { appendConsole, resetConsoles, setConsole, useConsole } from "../state/c
 const line = (seq: number, text: string, history = false): ConsoleLine => ({ seq, text, history });
 
 const sample = [
-  line(1, "---- Glasscraft session 2026-10-05 ----", true),
+  line(1, "---- Lodestar session 2026-10-05 ----", true),
   line(2, "[10:00:00] [Server thread/INFO]: Starting minecraft server version 26.3", true),
   line(3, "[10:00:02] [Server thread/WARN]: Can't keep up!"),
   line(4, '[10:00:03] [Server thread/INFO]: Done (1.23s)! For help, type "help"'),

@@ -134,7 +134,7 @@ impl Supervisor {
         let job = match JobObject::new_kill_on_close() {
             Ok(j) => Some(j),
             Err(e) => {
-                eprintln!("glasscraft: no job object, child processes may outlive the app: {e:#}");
+                eprintln!("lodestar: no job object, child processes may outlive the app: {e:#}");
                 None
             }
         };
@@ -285,7 +285,7 @@ impl Supervisor {
                 bail!("\"{}\" is not ready to start ({:?}).", i.name, i.state);
             }
             if let Err(e) = i.console.open_log(log_path) {
-                eprintln!("glasscraft: console log unavailable: {e}");
+                eprintln!("lodestar: console log unavailable: {e}");
             }
             i.session += 1;
             i.session
@@ -297,7 +297,7 @@ impl Supervisor {
                 let msg = format!("{e:#}");
                 {
                     let mut i = rt.inner.lock().unwrap();
-                    i.console.push(format!("[Glasscraft] Launch failed: {msg}"));
+                    i.console.push(format!("[Lodestar] Launch failed: {msg}"));
                     i.console.close_log();
                 }
                 self.flush(&rt);
@@ -419,10 +419,10 @@ impl Supervisor {
             i.players.clear();
             let code_text = code.map(|c| c.to_string()).unwrap_or_else(|| "?".into());
             let next = if reason.is_some() {
-                i.console.push(format!("[Glasscraft] Server stopped (exit code {code_text})."));
+                i.console.push(format!("[Lodestar] Server stopped (exit code {code_text})."));
                 ServerState::Stopped
             } else {
-                i.console.push(format!("[Glasscraft] Server exited unexpectedly (exit code {code_text})."));
+                i.console.push(format!("[Lodestar] Server exited unexpectedly (exit code {code_text})."));
                 i.message = Some(format!("The server exited unexpectedly (exit code {code_text})."));
                 ServerState::Crashed
             };
@@ -476,7 +476,7 @@ impl Supervisor {
                 i.session == session && i.state == ServerState::Stopping
             };
             if still {
-                rt2.inner.lock().unwrap().console.push("[Glasscraft] The server did not stop in time; forcing it to close.".into());
+                rt2.inner.lock().unwrap().console.push("[Lodestar] The server did not stop in time; forcing it to close.".into());
                 rt2.kill.notify_one();
             }
         });
@@ -506,7 +506,7 @@ impl Supervisor {
             if i.requested.is_none() {
                 i.requested = Some(StopReason::User);
             }
-            i.console.push("[Glasscraft] Force-killing the server.".into());
+            i.console.push("[Lodestar] Force-killing the server.".into());
         }
         rt.kill.notify_one();
         Ok(())
@@ -564,7 +564,7 @@ impl Supervisor {
     /// Records a note in the instance's console (shown live and in the log).
     pub fn note(&self, id: &str, text: &str) {
         let rt = self.runtime(id);
-        rt.inner.lock().unwrap().console.push(format!("[Glasscraft] {text}"));
+        rt.inner.lock().unwrap().console.push(format!("[Lodestar] {text}"));
         self.flush(&rt);
     }
 

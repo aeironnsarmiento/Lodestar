@@ -1,13 +1,13 @@
 [package]
-name = "glasscraft"
+name = "lodestar"
 version = "0.1.0"
-description = "Glasscraft - a Minecraft Java server and instance manager for Windows"
-authors = ["Glasscraft"]
+description = "Lodestar - a Minecraft Java server and instance manager for Windows"
+authors = ["Lodestar"]
 edition = "2021"
-default-run = "glasscraft"
+default-run = "lodestar"
 
 [lib]
-name = "glasscraft_lib"
+name = "lodestar_lib"
 
 # `fake_mc` plays a Minecraft server in tests. It is built by `cargo test` (default
 # features) but not by `tauri build`/`tauri dev`, which pass --no-default-features,
@@ -42,7 +42,7 @@ rand = "0.10.3"
 regex = "1.13.1"
 anyhow = "1.0.104"
 sysinfo = "0.39.6"
-windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_System_Power", "Win32_Security"] }
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_System_Power", "Win32_Security", "Win32_System_Registry"] }
 reqwest = { version = "0.13.5", default-features = false, features = ["json", "stream", "native-tls", "http2", "query", "charset"] }
 
 

@@ -27,7 +27,12 @@ pub fn run() {
         .setup(|tauri_app| {
             let handle = tauri_app.handle().clone();
             let events = Arc::new(TauriSink(handle.clone()));
-            let app = App::new(AppConfig::new(Paths::new(Paths::default_root())), events)?;
+            let root = Paths::default_root();
+            if let Err(e) = Paths::migrate_legacy_root(&root) {
+                eprintln!("lodestar: could not move the old Glasscraft data folder: {e}");
+            }
+            autostart::remove_legacy_entry();
+            let app = App::new(AppConfig::new(Paths::new(root)), events)?;
             tauri_app.manage(app.clone());
 
             tray::install(&handle)?;

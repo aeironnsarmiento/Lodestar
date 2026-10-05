@@ -22,6 +22,19 @@ pub fn apply(app: &AppHandle, enabled: bool) -> Result<(), String> {
     result.map_err(|e| format!("Could not change start-with-Windows: {e}"))
 }
 
+/// Removes the Run entry left by the app's old name (Glasscraft), so the old build
+/// never starts alongside this one. Missing entries are fine.
+pub fn remove_legacy_entry() {
+    use windows_sys::Win32::System::Registry::{RegDeleteKeyValueW, HKEY_CURRENT_USER};
+    let wide = |s: &str| s.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();
+    let key = wide(r"Software\Microsoft\Windows\CurrentVersion\Run");
+    let value = wide("Glasscraft");
+    // SAFETY: both strings are NUL-terminated UTF-16 buffers that outlive the call.
+    unsafe {
+        RegDeleteKeyValueW(HKEY_CURRENT_USER, key.as_ptr(), value.as_ptr());
+    }
+}
+
 pub fn launched_minimized() -> bool {
     std::env::args().any(|a| a == MINIMIZED_ARG)
 }

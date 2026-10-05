@@ -8,8 +8,8 @@ vi.mock("@tauri-apps/api/core", () => ({ invoke: (...args: unknown[]) => invoke(
 import { JavaPage } from "../pages/JavaPage";
 
 const runtimes = [
-  { major: 21, path: "C:\\Glasscraft\\runtimes\\java\\jre-21", sizeBytes: 52_428_800, inUse: false },
-  { major: 25, path: "C:\\Glasscraft\\runtimes\\java\\jre-25", sizeBytes: 60_817_408, inUse: true },
+  { major: 21, path: "C:\\Lodestar\\runtimes\\java\\jre-21", sizeBytes: 52_428_800, inUse: false },
+  { major: 25, path: "C:\\Lodestar\\runtimes\\java\\jre-25", sizeBytes: 60_817_408, inUse: true },
 ];
 
 describe("Java runtimes page", () => {

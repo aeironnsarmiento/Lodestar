@@ -149,7 +149,7 @@ pub fn prune(server_dir: &Path, keep: usize, current: Option<&str>) -> Vec<Strin
         match fs::remove_dir_all(&path) {
             Ok(()) => deleted.push(name),
             // A file still held open (e.g. by an antivirus scan) is retried next time.
-            Err(e) => eprintln!("glasscraft: could not delete {}: {e}", path.display()),
+            Err(e) => eprintln!("lodestar: could not delete {}: {e}", path.display()),
         }
     }
     deleted
