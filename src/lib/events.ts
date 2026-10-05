@@ -1,6 +1,6 @@
 /** Typed wrappers over backend events (KTD3). */
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import type { ConsoleLine, Snapshot, TaskProgress } from "./api";
+import type { ConsoleLine, PlayitStatus, Snapshot, TaskProgress } from "./api";
 
 export interface EventPayloads {
   "instances-changed": null;
@@ -9,6 +9,7 @@ export interface EventPayloads {
   metrics: Snapshot[];
   players: { id: string; players: string[] };
   "task-progress": TaskProgress;
+  "playit-state": PlayitStatus;
 }
 
 export type EventName = keyof EventPayloads;

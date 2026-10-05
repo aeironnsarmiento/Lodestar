@@ -3,7 +3,7 @@
  * it is filled from commands and kept fresh by backend events.
  */
 import { useSyncExternalStore } from "react";
-import { api, type AppSettings, type Instance, type Snapshot, type TaskProgress } from "../lib/api";
+import { api, type AppSettings, type Instance, type PlayitStatus, type Snapshot, type TaskProgress } from "../lib/api";
 
 export type PendingStart = { id: string; action: "launch" } | { id: string; action: "reset"; seed: string | null };
 
@@ -19,6 +19,7 @@ export interface StoreState {
   eulaPrompt: PendingStart | null;
   /** Last failed action per instance (launch, stop...). */
   actionErrors: Record<string, string>;
+  playit: PlayitStatus | null;
 }
 
 type Listener = () => void;
@@ -31,6 +32,7 @@ const initial = (): StoreState => ({
   error: null,
   eulaPrompt: null,
   actionErrors: {},
+  playit: null,
 });
 
 let state: StoreState = initial();
@@ -101,6 +103,14 @@ export async function refreshSnapshots(): Promise<void> {
     setState({ runtime: Object.fromEntries(list.map((x) => [x.id, x])) });
   } catch (e) {
     setState({ error: errorMessage(e) });
+  }
+}
+
+export async function refreshPlayit(): Promise<void> {
+  try {
+    setState({ playit: await api.playitStatus() });
+  } catch {
+    // Not running under Tauri.
   }
 }
 

@@ -134,7 +134,7 @@ impl App {
         Ok(JoinInfo {
             localhost: with_port("localhost", inst.port),
             lan: lan_ip().map(|ip| with_port(&ip, inst.port)),
-            public: None,
+            public: self.playit.public_address(inst.port),
         })
     }
 }

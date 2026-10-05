@@ -7,6 +7,7 @@ use crate::core::app::App;
 
 pub mod instances;
 pub mod java;
+pub mod playit;
 pub mod servers;
 pub mod settings;
 pub mod worlds;

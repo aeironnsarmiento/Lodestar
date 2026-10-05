@@ -613,3 +613,36 @@ table.data .seed {
   font-size: 12.5px;
   color: var(--text-muted);
 }
+
+/* ------------------------------------------------------------------ playit */
+
+.status-playit-linked .dot {
+  background: var(--ok);
+  box-shadow: 0 0 8px var(--ok);
+}
+
+.status-playit-installing .dot,
+.status-playit-waitingForClaim .dot {
+  background: var(--warn);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.status-playit-agentOffline .dot {
+  background: var(--danger);
+}
+
+.card-address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.card-address .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: text;
+}

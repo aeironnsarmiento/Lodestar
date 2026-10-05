@@ -123,6 +123,23 @@ export interface WorldInfo {
   current: boolean;
 }
 
+export type LinkState = "notSetUp" | "installing" | "waitingForClaim" | "agentOffline" | "linked";
+export type TunnelState = "pending" | "connected" | "limitReached" | "error";
+
+export interface TunnelStatus {
+  port: number;
+  state: TunnelState;
+  address: string | null;
+  message: string | null;
+}
+
+export interface PlayitStatus {
+  state: LinkState;
+  claimUrl: string | null;
+  message: string | null;
+  tunnels: TunnelStatus[];
+}
+
 export const SERVER_TYPE_LABELS: Record<ServerType, string> = {
   vanilla: "Vanilla",
   paper: "Paper",
@@ -160,6 +177,11 @@ export const api = {
   resetWorld: (id: string, seed: string | null) => invoke<string>("reset_world", { id, seed }),
   switchWorld: (id: string, name: string) => invoke<void>("switch_world", { id, name }),
   joinInfo: (id: string) => invoke<JoinInfo>("join_info", { id }),
+
+  playitStatus: () => invoke<PlayitStatus>("playit_status"),
+  playitSetup: () => invoke<string>("playit_setup"),
+  playitCancel: () => invoke<void>("playit_cancel"),
+  playitRelink: () => invoke<string>("playit_relink"),
 
   getSettings: () => invoke<AppSettings>("get_settings"),
   setSettings: (settings: AppSettings) => invoke<AppSettings>("set_settings", { settings }),

@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { SERVER_TYPE_LABELS, type Instance, type Snapshot, type TaskProgress } from "../lib/api";
+import { SERVER_TYPE_LABELS, type Instance, type Snapshot, type TaskProgress, type TunnelStatus } from "../lib/api";
 import { formatBytes, formatPercent } from "../lib/format";
 import { GlassButton } from "./glass/GlassButton";
 import { Icon } from "./Icon";
@@ -11,6 +11,8 @@ interface ServerCardProps {
   snap: Snapshot;
   progress?: TaskProgress;
   error?: string;
+  /** This server's playit.gg tunnel, if it has one. */
+  tunnel?: TunnelStatus;
   onOpen: () => void;
   onLaunch: () => void;
   onStop: () => void;
@@ -30,7 +32,7 @@ const stop = (fn: () => void) => (e: MouseEvent) => {
   fn();
 };
 
-export function ServerCard({ instance, snap, progress, error, onOpen, onLaunch, onStop, onReset, onRetry }: ServerCardProps) {
+export function ServerCard({ instance, snap, progress, error, tunnel, onOpen, onLaunch, onStop, onReset, onRetry }: ServerCardProps) {
   const badge = badgeState(instance, snap);
   const ready = instance.provision.state === "ready";
   const s = snap.state;
@@ -86,6 +88,19 @@ export function ServerCard({ instance, snap, progress, error, onOpen, onLaunch, 
             </dd>
           </div>
         </dl>
+      )}
+
+      {tunnel && ready && (
+        <div className="card-address" title="Public address (playit.gg)">
+          <Icon name="globe" size={13} />
+          {tunnel.state === "connected" && tunnel.address ? (
+            <span className="mono">{tunnel.address}</span>
+          ) : tunnel.state === "pending" ? (
+            <span className="faint">Tunnel pending…</span>
+          ) : (
+            <span className="error-text">{tunnel.state === "limitReached" ? "Tunnel limit reached" : "Tunnel error"}</span>
+          )}
+        </div>
       )}
 
       {error && <div className="error-text card-error">{error}</div>}

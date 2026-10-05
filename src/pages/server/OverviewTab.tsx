@@ -3,6 +3,7 @@ import { GlassButton } from "../../components/glass/GlassButton";
 import { Icon } from "../../components/Icon";
 import { api, SERVER_TYPE_LABELS, type Instance, type JoinInfo, type Snapshot } from "../../lib/api";
 import { formatBytes, formatPercent, formatUptime } from "../../lib/format";
+import { useStore } from "../../state/store";
 
 interface OverviewTabProps {
   instance: Instance;
@@ -11,6 +12,8 @@ interface OverviewTabProps {
 
 export function OverviewTab({ instance, snap }: OverviewTabProps) {
   const [join, setJoin] = useState<JoinInfo | null>(null);
+  const playit = useStore((s) => s.playit);
+  const tunnel = playit?.tunnels.find((t) => t.port === instance.port);
   const running = snap.state === "starting" || snap.state === "online" || snap.state === "stopping";
 
   useEffect(() => {
@@ -30,7 +33,11 @@ export function OverviewTab({ instance, snap }: OverviewTabProps) {
         <h2 className="section-title">Join addresses</h2>
         <AddressRow label="This PC" value={join?.localhost ?? `localhost:${instance.port}`} />
         <AddressRow label="Same Wi-Fi / LAN" value={join?.lan ?? null} empty="No network connection found" />
-        <AddressRow label="Friends anywhere (playit.gg)" value={join?.public ?? null} empty="Set up playit.gg to get a public address" />
+        <AddressRow
+          label="Friends anywhere (playit.gg)"
+          value={tunnel?.state === "connected" ? tunnel.address : null}
+          empty={publicHint(playit?.state, tunnel?.state, tunnel?.message)}
+        />
       </section>
 
       <section className="surface panel">
@@ -57,6 +64,16 @@ export function OverviewTab({ instance, snap }: OverviewTabProps) {
       </section>
     </div>
   );
+}
+
+function publicHint(link?: string, tunnel?: string, message?: string | null): string {
+  if (!link || link === "notSetUp" || link === "installing" || link === "waitingForClaim") {
+    return "Set up playit.gg (sidebar) to get a public address";
+  }
+  if (link === "agentOffline") return "playit.gg agent offline — it restarts on its own";
+  if (tunnel === "pending") return "Tunnel pending — the address appears in a moment";
+  if (tunnel === "limitReached" || tunnel === "error") return message ?? "The tunnel could not be created";
+  return "Launch the server to create its public address";
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

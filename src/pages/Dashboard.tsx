@@ -17,6 +17,7 @@ export function Dashboard({ onOpen }: DashboardProps) {
   const runtime = useStore((s) => s.runtime);
   const progress = useStore((s) => s.progress);
   const actionErrors = useStore((s) => s.actionErrors);
+  const tunnels = useStore((s) => s.playit?.tunnels);
   const [creating, setCreating] = useState(false);
 
   const online = instances.filter((i) => runtime[i.id]?.state === "online").length;
@@ -40,6 +41,7 @@ export function Dashboard({ onOpen }: DashboardProps) {
             snap={runtime[inst.id] ?? stoppedSnapshot(inst.id, inst.port)}
             progress={progress[inst.id]}
             error={actionErrors[inst.id]}
+            tunnel={tunnels?.find((t) => t.port === inst.port)}
             onOpen={() => onOpen(inst.id)}
             onLaunch={() => requestLaunch(inst.id)}
             onStop={() => runAction(inst.id, () => api.stopServer(inst.id))}

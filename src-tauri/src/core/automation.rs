@@ -39,6 +39,12 @@ impl App {
                     }
                 }
             }
+            ServerState::Starting => {
+                // Lazily give this port a public address once playit.gg is linked (KTD11).
+                if let Ok(inst) = self.store.get(&change.id) {
+                    self.playit.ensure_tunnel(inst.port);
+                }
+            }
             ServerState::Crashed => self.handle_crash(&change.id),
             _ => {}
         }
@@ -137,9 +143,18 @@ impl App {
         }
     }
 
-    /// Stops every server gracefully (app quit).
+    /// Background work that needs the async runtime: the playit agent, the restart
+    /// scheduler and servers that start with the app.
+    pub fn start_background(self: &Arc<Self>) {
+        self.playit.init();
+        tokio::spawn(self.clone().run_scheduler());
+        tokio::spawn(self.clone().autostart_instances());
+    }
+
+    /// Stops every server gracefully and the playit agent (app quit).
     pub async fn shutdown(&self) {
         self.supervisor.stop_all(StopReason::Quit).await;
+        self.playit.shutdown();
         self.keep_awake.set(false);
     }
 }

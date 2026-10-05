@@ -135,3 +135,24 @@ async fn instances_for_1_16_1_and_26_3_resolve_java_8_and_25_without_the_system_
         assert!(exe.to_string_lossy().contains(&format!("jre-{want}")), "{mc} → {}", exe.display());
     }
 }
+
+/// Opt-in: `GLASSCRAFT_LIVE_TESTS=1 cargo test live_`. Asks Adoptium for the Windows
+/// JREs the app maps to, without downloading them.
+#[tokio::test]
+async fn live_adoptium_has_windows_jres_for_every_target() {
+    if std::env::var("GLASSCRAFT_LIVE_TESTS").ok().as_deref() != Some("1") {
+        eprintln!("skipped: set GLASSCRAFT_LIVE_TESTS=1 to run");
+        return;
+    }
+    let d = Downloader::new();
+    for major in [8, 17, 21, 25] {
+        let url = format!(
+            "{}/assets/latest/{major}/hotspot?architecture=x64&image_type=jre&os=windows&vendor=eclipse",
+            JavaManager::DEFAULT_API
+        );
+        let assets: Vec<serde_json::Value> = d.get_json(&url).await.unwrap();
+        let pkg = &assets[0]["binary"]["package"];
+        assert!(pkg["name"].as_str().unwrap().ends_with(".zip"), "Java {major}");
+        assert_eq!(pkg["checksum"].as_str().unwrap().len(), 64, "Java {major}");
+    }
+}

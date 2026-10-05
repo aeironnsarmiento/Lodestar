@@ -3,6 +3,7 @@ pub mod core;
 pub mod download;
 pub mod java;
 pub mod lifecycle;
+pub mod playit;
 pub mod providers;
 pub mod supervisor;
 pub mod worlds;
@@ -38,8 +39,7 @@ pub fn run() {
             // Keep the Run entry in step with the setting (e.g. after the app moved).
             let _ = autostart::apply(&handle, app.settings().start_with_windows);
 
-            tauri::async_runtime::spawn(app.clone().run_scheduler());
-            tauri::async_runtime::spawn(app.autostart_instances());
+            tauri::async_runtime::spawn(async move { app.start_background() });
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -78,6 +78,10 @@ pub fn run() {
             commands::worlds::list_worlds,
             commands::worlds::reset_world,
             commands::worlds::switch_world,
+            commands::playit::playit_status,
+            commands::playit::playit_setup,
+            commands::playit::playit_cancel,
+            commands::playit::playit_relink,
             commands::settings::get_settings,
             commands::settings::set_settings,
             commands::settings::accept_eula,

@@ -22,6 +22,7 @@ use crate::lifecycle::crash::{CrashPolicy, BACKOFF};
 use crate::lifecycle::keep_awake::KeepAwake;
 use crate::lifecycle::scheduler::ScheduleState;
 use crate::lifecycle::{Clock, SystemClock};
+use crate::playit::{PlayitConfig, PlayitManager};
 use crate::supervisor::{Supervisor, DEFAULT_STOP_TIMEOUT};
 
 /// Where the app's data lives and which services it talks to.
@@ -39,6 +40,7 @@ pub struct AppConfig {
     pub clock: Arc<dyn Clock>,
     /// Delays before the automatic restarts after a crash (KTD13).
     pub crash_backoff: [Duration; 3],
+    pub playit: PlayitConfig,
 }
 
 impl AppConfig {
@@ -52,6 +54,7 @@ impl AppConfig {
             java_override: None,
             clock: Arc::new(SystemClock),
             crash_backoff: BACKOFF,
+            playit: PlayitConfig::default(),
         }
     }
 }
@@ -68,6 +71,7 @@ pub struct App {
     pub crash: Mutex<CrashPolicy>,
     pub schedules: Mutex<HashMap<String, ScheduleState>>,
     pub keep_awake: KeepAwake,
+    pub playit: Arc<PlayitManager>,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -92,11 +96,12 @@ impl App {
         let store = Arc::new(Store::open(config.paths.clone())?);
         let downloader = Downloader::new().with_backoff(config.download_backoff);
         let providers = Providers::new(config.paths.clone(), downloader.clone(), config.endpoints.clone());
-        let java = JavaManager::new(config.paths.java_runtimes_dir(), downloader, config.adoptium_api.clone());
+        let java = JavaManager::new(config.paths.java_runtimes_dir(), downloader.clone(), config.adoptium_api.clone());
         let supervisor = Supervisor::with_stop_timeout(events.clone(), config.stop_timeout);
         for inst in store.list() {
             supervisor.load_history(&inst.id, &log_path(&config.paths.server_dir(&inst.id)));
         }
+        let playit = PlayitManager::new(config.paths.playit_dir(), downloader, config.playit.clone(), events.clone(), supervisor.clone());
         let app = Arc::new(Self {
             store,
             events,
@@ -109,6 +114,7 @@ impl App {
             crash: Mutex::new(CrashPolicy::default()),
             schedules: Mutex::new(HashMap::new()),
             keep_awake: KeepAwake::new(),
+            playit,
         });
         app.install_hooks();
         Ok(app)
