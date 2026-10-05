@@ -69,8 +69,8 @@ function App() {
             <TopBar slotRef={setHeaderSlot} theme={theme} onToggleTheme={toggleTheme} />
             <Sidebar active={area} onNavigate={navigate} />
             <main className="main">
-              {serverId && <ServerPage key={serverId} id={serverId} onBack={() => setServerId(null)} />}
-              {!serverId && area === "dashboard" && <Dashboard onOpen={setServerId} />}
+              {serverId && <ServerPage key={serverId} id={serverId} onBack={() => setServerId(null)} onOpenSettings={() => navigate("settings")} />}
+              {!serverId && area === "dashboard" && <Dashboard onOpen={setServerId} onOpenSettings={() => navigate("settings")} />}
               {!serverId && area === "playit" && <PlayitPage />}
               {!serverId && area === "java" && <JavaPage />}
               {!serverId && area === "settings" && (

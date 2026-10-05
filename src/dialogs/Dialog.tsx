@@ -8,13 +8,14 @@ interface DialogProps {
   children: ReactNode;
   footer?: ReactNode;
   width?: number;
+  className?: string;
 }
 
 /**
  * A modal glass sheet. Escape and the backdrop close it. It renders on document.body
  * because the blurred window frame would otherwise trap its fixed backdrop.
  */
-export function Dialog({ title, onClose, children, footer, width = 520 }: DialogProps) {
+export function Dialog({ title, onClose, children, footer, width = 520, className }: DialogProps) {
   const titleId = useId();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -27,7 +28,7 @@ export function Dialog({ title, onClose, children, footer, width = 520 }: Dialog
       <GlassPanel
         layer
         tone="raised"
-        className="dialog"
+        className={className ? `dialog ${className}` : "dialog"}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

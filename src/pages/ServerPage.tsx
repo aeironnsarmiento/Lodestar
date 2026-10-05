@@ -3,7 +3,7 @@ import { PageHeader } from "../components/PageHeader";
 import { StatusBadge } from "../components/StatusBadge";
 import { GlassButton } from "../components/glass/GlassButton";
 import { Icon } from "../components/Icon";
-import { api, SERVER_TYPE_LABELS, type Instance, type Snapshot } from "../lib/api";
+import { addonKindFor, api, SERVER_TYPE_LABELS, type Instance, type Snapshot } from "../lib/api";
 import { stoppedSnapshot, useStore } from "../state/store";
 import { requestLaunch, resetWorld, runAction } from "../state/actions";
 import { ResetButton } from "../dialogs/ResetSeedPopover";
@@ -12,8 +12,9 @@ import { OverviewTab } from "./server/OverviewTab";
 import { ConsoleTab } from "./server/ConsoleTab";
 import { SettingsTab } from "./server/SettingsTab";
 import { WorldsTab } from "./server/WorldsTab";
+import { ModsTab } from "./server/ModsTab";
 
-export type ServerTab = "overview" | "console" | "worlds" | "settings";
+export type ServerTab = "overview" | "console" | "mods" | "worlds" | "settings";
 
 const TABS: { id: ServerTab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -26,9 +27,11 @@ interface ServerPageProps {
   id: string;
   onBack: () => void;
   initialTab?: ServerTab;
+  /** Opens app Settings (the CurseForge key lives there). */
+  onOpenSettings?: () => void;
 }
 
-export function ServerPage({ id, onBack, initialTab = "overview" }: ServerPageProps) {
+export function ServerPage({ id, onBack, initialTab = "overview", onOpenSettings }: ServerPageProps) {
   const instance = useStore((s) => s.instances.find((i) => i.id === id));
   const runtime = useStore((s) => s.runtime[id]);
   const [tab, setTab] = useState<ServerTab>(initialTab);
@@ -63,7 +66,7 @@ export function ServerPage({ id, onBack, initialTab = "overview" }: ServerPagePr
       )}
       {!error && snap.message && snap.state !== "online" && <p className="muted">{snap.message}</p>}
       <div className="tabs" role="tablist" aria-label="Server sections">
-        {TABS.map((t) => (
+        {tabsFor(instance).map((t) => (
           <button
             key={t.id}
             type="button"
@@ -79,11 +82,20 @@ export function ServerPage({ id, onBack, initialTab = "overview" }: ServerPagePr
       <div role="tabpanel">
         {tab === "overview" && <OverviewTab instance={instance} snap={snap} />}
         {tab === "console" && <ConsoleTab instance={instance} snap={snap} />}
+        {tab === "mods" && <ModsTab instance={instance} running={running} onOpenSettings={onOpenSettings} />}
         {tab === "worlds" && <WorldsTab instance={instance} />}
         {tab === "settings" && <SettingsTab instance={instance} running={running} onDeleted={onBack} />}
       </div>
     </div>
   );
+}
+
+/** Vanilla has no mods tab; Paper calls its add-ons plugins. */
+function tabsFor(instance: Instance): { id: ServerTab; label: string }[] {
+  const kind = addonKindFor(instance.serverType);
+  if (!kind) return TABS;
+  const mods = { id: "mods" as const, label: kind === "plugin" ? "Plugins" : "Mods" };
+  return [...TABS.slice(0, 2), mods, ...TABS.slice(2)];
 }
 
 function BackButton({ onBack }: { onBack: () => void }) {

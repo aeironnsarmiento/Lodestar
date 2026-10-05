@@ -165,6 +165,10 @@ impl Store {
             game_mode: new.game_mode,
             difficulty: if new.hardcore { Difficulty::Hard } else { new.difficulty },
             hardcore: new.hardcore,
+            loader_version: new.loader_version.map(|v| v.trim().to_string()).filter(|v| !v.is_empty()),
+            // A modpack brings its own performance mods.
+            speed_mods: new.modpack.is_none(),
+            modpack: new.modpack,
             max_players: new.max_players.unwrap_or(defaults.max_players).clamp(1, 1000),
             port,
             created_at: chrono::Local::now().to_rfc3339(),

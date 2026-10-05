@@ -6,6 +6,8 @@ export function makeInstance(overrides: Partial<Instance> = {}): Instance {
     name: "Speedrun",
     serverType: "fabric",
     mcVersion: "26.3",
+    loaderVersion: null,
+    modpack: null,
     launch: { kind: "jar", jar: "C:\\cache\\fabric.jar" },
     javaMajor: 25,
     currentWorld: null,
@@ -74,6 +76,7 @@ export const settings: AppSettings = {
   closeToTray: true,
   startWithWindows: false,
   eulaAcceptedAt: null,
+  curseforgeApiKey: "",
 };
 
 export const versions = [

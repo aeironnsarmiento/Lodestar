@@ -11,9 +11,10 @@ import { requestLaunch, resetWorld, runAction } from "../state/actions";
 
 interface DashboardProps {
   onOpen: (id: string) => void;
+  onOpenSettings?: () => void;
 }
 
-export function Dashboard({ onOpen }: DashboardProps) {
+export function Dashboard({ onOpen, onOpenSettings }: DashboardProps) {
   const instances = useStore((s) => s.instances);
   const runtime = useStore((s) => s.runtime);
   const progress = useStore((s) => s.progress);
@@ -63,6 +64,7 @@ export function Dashboard({ onOpen }: DashboardProps) {
       {deleting && <DeleteServerDialog instance={deleting} onClose={() => setDeletingId(null)} />}
       {creating && (
         <NewServerDialog
+          onOpenSettings={onOpenSettings}
           onClose={() => setCreating(false)}
           onCreated={() => {
             setCreating(false);

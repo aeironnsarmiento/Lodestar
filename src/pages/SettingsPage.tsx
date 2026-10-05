@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { PageHeader } from "../components/PageHeader";
 import { GlassButton } from "../components/glass/GlassButton";
-import { Switch } from "../components/glass/GlassInput";
+import { GlassInput, Switch } from "../components/glass/GlassInput";
 import { Icon } from "../components/Icon";
 import { api } from "../lib/api";
 import { saveSettings, useStore } from "../state/store";
@@ -74,6 +75,8 @@ export function SettingsPage({ reduceEffects, onReduceEffects }: SettingsPagePro
             </GlassButton>
           </div>
         </section>
+
+        <CurseForgeSection />
 
         <section className="surface panel">
           <h2 className="section-title">Minecraft EULA</h2>
@@ -153,6 +156,58 @@ function AppearanceSection({ reduceEffects, onReduceEffects }: AppearanceSection
           <div className="hint">Turns off the frosted blur and animations for a flat, lighter look.</div>
         </div>
         <Switch label="Reduce effects" checked={reduceEffects} onChange={onReduceEffects} />
+      </div>
+    </section>
+  );
+}
+
+const CURSEFORGE_CONSOLE = "https://console.curseforge.com/";
+
+/** The user's own CurseForge API key; CurseForge does not let apps ship one. */
+function CurseForgeSection() {
+  const saved = useStore((s) => s.settings?.curseforgeApiKey ?? "");
+  const ready = useStore((s) => s.settings !== null);
+  const [key, setKey] = useState(saved);
+  const [shown, setShown] = useState(false);
+  useEffect(() => setKey(saved), [saved]);
+
+  const commit = () => {
+    if (key.trim() !== saved) saveSettings({ curseforgeApiKey: key.trim() });
+  };
+
+  return (
+    <section className="surface panel">
+      <h2 className="section-title">CurseForge</h2>
+      <div className="setting-row">
+        <div>
+          <div className="label">API key</div>
+          <div className="hint">
+            Needed to browse and install from CurseForge. Get a free key from the{" "}
+            <a
+              href={CURSEFORGE_CONSOLE}
+              onClick={(e) => {
+                e.preventDefault();
+                openUrl(CURSEFORGE_CONSOLE).catch(() => {});
+              }}
+            >
+              CurseForge console
+            </a>
+            . Modrinth works without one.
+          </div>
+        </div>
+        <div className="setting-control row">
+          <GlassInput
+            aria-label="CurseForge API key"
+            type={shown ? "text" : "password"}
+            placeholder="Paste your key"
+            value={key}
+            disabled={!ready}
+            onChange={(e) => setKey(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => e.key === "Enter" && commit()}
+          />
+          <GlassButton size="sm" iconOnly variant="ghost" aria-label={shown ? "Hide key" : "Show key"} icon={<Icon name="search" size={14} />} onClick={() => setShown((v) => !v)} />
+        </div>
       </div>
     </section>
   );

@@ -18,6 +18,8 @@ pub struct AppSettings {
     pub start_with_windows: bool,
     /// RFC 3339 time the Minecraft EULA was accepted (KTD15). `None` = not accepted.
     pub eula_accepted_at: Option<String>,
+    /// The user's own CurseForge API key; CurseForge does not let apps ship one.
+    pub curseforge_api_key: String,
 }
 
 impl Default for AppSettings {
@@ -28,6 +30,7 @@ impl Default for AppSettings {
             close_to_tray: true,
             start_with_windows: false,
             eula_accepted_at: None,
+            curseforge_api_key: String::new(),
         }
     }
 }

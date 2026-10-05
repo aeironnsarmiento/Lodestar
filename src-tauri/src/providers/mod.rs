@@ -96,6 +96,7 @@ pub struct Endpoints {
     pub neoforge_api: String,
     pub neoforge_maven: String,
     pub modrinth: String,
+    pub curseforge: String,
 }
 
 impl Default for Endpoints {
@@ -109,6 +110,7 @@ impl Default for Endpoints {
             neoforge_api: "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge".into(),
             neoforge_maven: "https://maven.neoforged.net/releases/net/neoforged/neoforge".into(),
             modrinth: "https://api.modrinth.com/v2".into(),
+            curseforge: "https://api.curseforge.com/v1".into(),
         }
     }
 }
@@ -125,6 +127,7 @@ impl Endpoints {
             neoforge_api: format!("{base}/neoforge/api"),
             neoforge_maven: format!("{base}/neoforge/maven"),
             modrinth: format!("{base}/modrinth"),
+            curseforge: format!("{base}/curseforge"),
         }
     }
 }
@@ -214,6 +217,7 @@ impl Providers {
         &self,
         server_type: ServerType,
         mc_version: &str,
+        loader_version: Option<&str>,
         server_dir: &Path,
         java: Option<&Path>,
         progress: ProgressFn<'_>,
@@ -246,7 +250,10 @@ impl Providers {
             }
             ServerType::Fabric => {
                 let meta = &self.endpoints.fabric_meta;
-                let loader = fabric::pick_stable(&self.downloader.get_text(&format!("{meta}/versions/loader")).await?)?;
+                let loader = match loader_version {
+                    Some(v) => v.to_string(),
+                    None => fabric::pick_stable(&self.downloader.get_text(&format!("{meta}/versions/loader")).await?)?,
+                };
                 let installer = fabric::pick_stable(&self.downloader.get_text(&format!("{meta}/versions/installer")).await?)?;
                 let url = format!("{meta}/versions/loader/{mc_version}/{loader}/{installer}/server/jar");
                 let dest = cache.join(format!("fabric-{mc_version}-loader{loader}-launcher{installer}.jar"));
@@ -258,7 +265,20 @@ impl Providers {
                     bail!("{} needs Minecraft {MODDED_MIN_MC} or newer.", server_type.label());
                 }
                 let java = java.ok_or_else(|| anyhow!("Java is needed to run the {} installer.", server_type.label()))?;
-                let (loader_version, url) = if server_type == ServerType::Forge {
+                let (loader_version, url) = if let Some(pinned) = loader_version {
+                    // Forge's maven names builds `<mc>-<forge>`; modpacks give just `<forge>`.
+                    let v = if server_type == ServerType::Forge && !pinned.contains('-') {
+                        format!("{mc_version}-{pinned}")
+                    } else {
+                        pinned.to_string()
+                    };
+                    let url = if server_type == ServerType::Forge {
+                        forge::installer_url(&self.endpoints.forge_maven, &v)
+                    } else {
+                        neoforge::installer_url(&self.endpoints.neoforge_maven, &v)
+                    };
+                    (v, url)
+                } else if server_type == ServerType::Forge {
                     let promos = forge::parse_promotions(&self.downloader.get_text(&self.endpoints.forge_promotions).await?)?;
                     let xml = self.downloader.get_text(&format!("{}/maven-metadata.xml", self.endpoints.forge_maven)).await?;
                     let v = forge::pick_version(&forge::parse_maven_metadata(&xml), &promos, mc_version)

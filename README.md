@@ -27,7 +27,16 @@ no batch files, no manual Java installs, no port forwarding.
   apply straight away.
 - **Fabric speed mods.** Fabric servers can get Lithium and FerriteCore installed
   automatically.
-- **Mods and plugins.** Open a server's `mods` or `plugins` folder straight from its page.
+- **Mods and plugins tab.** Drag `.jar` files onto the window, or browse Modrinth and
+  CurseForge from inside the app (filtered to the server's loader and Minecraft version).
+  Installs bring their required dependencies. Turn files on and off, check for and apply
+  updates, and remove them. Files added by hand are recognised on Modrinth by their hash.
+- **Modpacks.** New server → A modpack: pick a pack on Modrinth or CurseForge, or import a
+  `.mrpack` / CurseForge `.zip`. Lodestar installs the exact Minecraft version and loader the
+  pack needs, its server-side mods and its settings, and can later switch the server to
+  another version of the pack. CurseForge needs your own free API key (Settings →
+  CurseForge); files whose authors block app downloads are listed with links to grab them
+  by hand.
 
 ## Running servers
 
@@ -84,6 +93,8 @@ Everything is under `%APPDATA%\Lodestar`:
 |---|---|
 | `settings.json` | App settings (theme, tray, start with Windows, EULA acceptance) |
 | `instances\<id>\instance.json` | A server's settings |
+| `instances\<id>\addons.json` | Where each mod or plugin came from and which version it is |
+| `instances\<id>\modpack\` | The modpack file a server was made from |
 | `instances\<id>\server\` | Its server files, `server.properties`, mods or plugins |
 | `instances\<id>\server\worlds\run_<date>\` | One folder per world, with `seed.txt` |
 | `instances\<id>\server\logs\lodestar-console.log` | The console history |

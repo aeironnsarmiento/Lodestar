@@ -1,3 +1,4 @@
+pub mod addons;
 pub mod commands;
 pub mod core;
 pub mod download;
@@ -23,6 +24,7 @@ pub fn run() {
         // Must be first: a second launch focuses the running app instead.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| tray::show_main(app)))
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(autostart::plugin())
         .setup(|tauri_app| {
             let handle = tauri_app.handle().clone();
@@ -92,6 +94,18 @@ pub fn run() {
             commands::settings::set_settings,
             commands::settings::accept_eula,
             commands::settings::quit_app,
+            commands::addons::list_addons,
+            commands::addons::identify_addons,
+            commands::addons::set_addon_enabled,
+            commands::addons::remove_addon,
+            commands::addons::import_addons,
+            commands::addons::search_projects,
+            commands::addons::project_versions,
+            commands::addons::install_project,
+            commands::addons::check_addon_updates,
+            commands::addons::update_addon,
+            commands::addons::inspect_modpack_file,
+            commands::addons::update_modpack,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

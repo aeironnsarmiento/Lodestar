@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use crate::core::app::App;
 
+pub mod addons;
 pub mod instances;
 pub mod java;
 pub mod playit;

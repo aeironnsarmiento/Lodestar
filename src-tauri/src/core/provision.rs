@@ -31,7 +31,7 @@ impl App {
         Ok(())
     }
 
-    fn spawn_provision(self: &Arc<Self>, id: &str) {
+    pub(crate) fn spawn_provision(self: &Arc<Self>, id: &str) {
         let (app, id) = (self.clone(), id.to_string());
         // Mark it running right away so the card never flashes "ready".
         let _ = self.set_provision(&id, Provision::Running { message: "Getting ready…".into() });
@@ -51,12 +51,16 @@ impl App {
         Ok(inst)
     }
 
-    fn step(&self, id: &str, message: &str) -> Result<()> {
+    pub(crate) fn step(&self, id: &str, message: &str) -> Result<()> {
         self.set_provision(id, Provision::Running { message: message.into() }).map(|_| ())
     }
 
     /// Runs every provisioning step. Safe to repeat: downloads are cached and verified.
     pub async fn provision(&self, id: &str) -> Result<()> {
+        // A modpack decides the Minecraft version and loader, so it is read first.
+        if self.store.get(id)?.modpack.as_ref().is_some_and(|p| !p.installed) {
+            self.prepare_modpack(id).await?;
+        }
         let inst = self.store.get(id)?;
         let mc = inst.mc_version.clone();
 
@@ -77,7 +81,7 @@ impl App {
         }
         let launch = self
             .providers
-            .install(inst.server_type, &mc, &server_dir, Some(&java), &progress)
+            .install(inst.server_type, &mc, inst.loader_version.as_deref(), &server_dir, Some(&java), &progress)
             .await?;
         self.store.modify(id, |i| i.launch = Some(launch))?;
 
@@ -112,6 +116,9 @@ impl App {
                     i.managed_mods_for = Some(tag);
                 })?;
             }
+        }
+        if self.store.get(id)?.modpack.as_ref().is_some_and(|p| !p.installed) {
+            self.install_modpack_files(id).await?;
         }
         Ok(())
     }

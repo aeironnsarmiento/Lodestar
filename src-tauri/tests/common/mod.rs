@@ -184,6 +184,43 @@ pub fn fixture_server() -> TestServer {
                 Response::json(l)
             }
             "/files/lithium.jar" => Response::ok(b"lithium".to_vec()),
+            // Add-on browser: "servercore" requires "fabric-api".
+            _ if p.starts_with("/modrinth/project/servercore/version") => {
+                Response::json(serde_json::json!([mr_version(&base, "sc-2", "servercore", "1.2.0", "servercore-1.2.0.jar", b"servercore 1.2", &["fabric-api"])]))
+            }
+            _ if p.starts_with("/modrinth/project/fabric-api/version") => {
+                Response::json(serde_json::json!([mr_version(&base, "fa-1", "fabric-api", "0.100.0", "fabric-api-0.100.0.jar", b"fabric api", &[])]))
+            }
+            "/modrinth/version/sc-2" => {
+                Response::json(mr_version(&base, "sc-2", "servercore", "1.2.0", "servercore-1.2.0.jar", b"servercore 1.2", &["fabric-api"]))
+            }
+            "/modrinth/version/sc-1" => {
+                Response::json(mr_version(&base, "sc-1", "servercore", "1.1.0", "servercore-1.1.0.jar", b"servercore 1.1", &["fabric-api"]))
+            }
+            _ if p.starts_with("/modrinth/projects") => Response::json(serde_json::json!([
+                { "id": "servercore", "slug": "servercore", "title": "ServerCore", "icon_url": null, "project_type": "mod" },
+                { "id": "fabric-api", "slug": "fabric-api", "title": "Fabric API", "icon_url": null, "project_type": "mod" },
+            ])),
+            "/modrinth/version_files" => {
+                let wanted = req.json();
+                let known = sha1_hex(b"servercore 1.1");
+                let mut out = serde_json::Map::new();
+                if wanted["hashes"].as_array().unwrap().iter().any(|h| h == &serde_json::json!(known)) {
+                    out.insert(known, mr_version(&base, "sc-1", "servercore", "1.1.0", "servercore-1.1.0.jar", b"servercore 1.1", &[]));
+                }
+                Response::json(serde_json::Value::Object(out))
+            }
+            "/modrinth/version_files/update" => {
+                let known = sha1_hex(b"servercore 1.1");
+                let mut out = serde_json::Map::new();
+                out.insert(known, mr_version(&base, "sc-2", "servercore", "1.2.0", "servercore-1.2.0.jar", b"servercore 1.2", &[]));
+                Response::json(serde_json::Value::Object(out))
+            }
+            _ if p.starts_with("/files/mr/") => {
+                let name = p.trim_start_matches("/files/mr/");
+                Response::ok(mr_file_body(name))
+            }
+            "/files/pack-mod.jar" => Response::ok(b"pack mod".to_vec()),
             _ if p.starts_with("/modrinth/project/ferrite-core/") => Response::ok(fixture("providers/modrinth_empty.json")),
             _ if p.starts_with("/adoptium/assets/latest/") => {
                 let major: u32 = p["/adoptium/assets/latest/".len()..].split('/').next().unwrap().parse().unwrap();
@@ -269,4 +306,30 @@ pub fn ready_instance(app: &lodestar_lib::core::app::App, name: &str) -> lodesta
 /// Console text of an instance.
 pub fn console_text(app: &lodestar_lib::core::app::App, id: &str) -> Vec<String> {
     app.console(id).into_iter().map(|l| l.text).collect()
+}
+
+/// The body served for a Modrinth fixture file.
+pub fn mr_file_body(name: &str) -> Vec<u8> {
+    match name {
+        "servercore-1.2.0.jar" => b"servercore 1.2".to_vec(),
+        "servercore-1.1.0.jar" => b"servercore 1.1".to_vec(),
+        "fabric-api-0.100.0.jar" => b"fabric api".to_vec(),
+        _ => Vec::new(),
+    }
+}
+
+/// A Modrinth version object whose file is served by the fixture server.
+pub fn mr_version(base: &str, id: &str, project: &str, number: &str, file: &str, body: &[u8], deps: &[&str]) -> serde_json::Value {
+    serde_json::json!({
+        "id": id,
+        "project_id": project,
+        "name": format!("{project} {number}"),
+        "version_number": number,
+        "game_versions": ["26.3"],
+        "loaders": ["fabric"],
+        "version_type": "release",
+        "date_published": "2026-09-01T00:00:00Z",
+        "dependencies": deps.iter().map(|d| serde_json::json!({ "project_id": d, "version_id": null, "dependency_type": "required" })).collect::<Vec<_>>(),
+        "files": [{ "url": format!("{base}/files/mr/{file}"), "filename": file, "primary": true, "hashes": { "sha1": sha1_hex(body) } }],
+    })
 }

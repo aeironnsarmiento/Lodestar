@@ -14,6 +14,7 @@ import { formatDate } from "../lib/format";
 import { visibleVersions } from "../lib/versions";
 import { errorMessage } from "../state/store";
 import { Dialog } from "./Dialog";
+import { ModpackServerForm } from "./ModpackServerForm";
 
 const TYPES: ServerType[] = ["vanilla", "paper", "fabric", "forge", "neoforge"];
 
@@ -28,9 +29,11 @@ const TYPE_HINTS: Record<ServerType, string> = {
 interface NewServerDialogProps {
   onClose: () => void;
   onCreated: (instance: Instance) => void;
+  onOpenSettings?: () => void;
 }
 
-export function NewServerDialog({ onClose, onCreated }: NewServerDialogProps) {
+export function NewServerDialog({ onClose, onCreated, onOpenSettings }: NewServerDialogProps) {
+  const [mode, setMode] = useState<"blank" | "modpack">("blank");
   const [name, setName] = useState("Speedrun server");
   const [type, setType] = useState<ServerType>("fabric");
   const [versions, setVersions] = useState<VersionEntry[] | null>(null);
@@ -91,6 +94,28 @@ export function NewServerDialog({ onClose, onCreated }: NewServerDialogProps) {
 
   return (
     <Dialog title="New server" onClose={onClose} width={600}>
+      <div className="segmented new-server-mode" role="radiogroup" aria-label="Start from">
+        {(
+          [
+            ["blank", "A fresh server"],
+            ["modpack", "A modpack"],
+          ] as const
+        ).map(([m, label]) => (
+          <button
+            key={m}
+            type="button"
+            role="radio"
+            aria-checked={mode === m}
+            className={mode === m ? "segment active" : "segment"}
+            onClick={() => setMode(m)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {mode === "modpack" ? (
+        <ModpackServerForm onClose={onClose} onCreated={onCreated} onOpenSettings={onOpenSettings} />
+      ) : (
       <form className="stack" onSubmit={submit} aria-label="New server">
         <div className="field">
           <label htmlFor="ns-name">Name</label>
@@ -201,6 +226,7 @@ export function NewServerDialog({ onClose, onCreated }: NewServerDialogProps) {
           </GlassButton>
         </div>
       </form>
+      )}
     </Dialog>
   );
 }

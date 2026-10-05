@@ -187,11 +187,11 @@ async fn vanilla_paper_and_fabric_install_to_the_shared_jar_cache() {
     let server_dir = dir.path().join("instances/a/server");
     let cache = Paths::new(dir.path()).jar_cache_dir();
 
-    let vanilla = p.install(ServerType::Vanilla, "26.3", &server_dir, None, &no_progress).await.unwrap();
+    let vanilla = p.install(ServerType::Vanilla, "26.3", None, &server_dir, None, &no_progress).await.unwrap();
     assert_eq!(vanilla, LaunchInfo::Jar { jar: cache.join("vanilla-26.3.jar").to_string_lossy().into() });
-    let paper = p.install(ServerType::Paper, "26.3", &server_dir, None, &no_progress).await.unwrap();
+    let paper = p.install(ServerType::Paper, "26.3", None, &server_dir, None, &no_progress).await.unwrap();
     assert_eq!(paper, LaunchInfo::Jar { jar: cache.join("paper-26.3-152.jar").to_string_lossy().into() });
-    let fabric = p.install(ServerType::Fabric, "26.3", &server_dir, None, &no_progress).await.unwrap();
+    let fabric = p.install(ServerType::Fabric, "26.3", None, &server_dir, None, &no_progress).await.unwrap();
     let LaunchInfo::Jar { jar } = &fabric else { panic!() };
     assert!(jar.ends_with("fabric-26.3-loader0.19.5-launcher1.1.2.jar"));
     assert_eq!(std::fs::read(jar).unwrap(), b"fabric launcher");
@@ -204,7 +204,7 @@ async fn vanilla_paper_and_fabric_install_to_the_shared_jar_cache() {
 
     // A second install reuses the cached jar (no second download request).
     let before = server.count("/files/vanilla-server.jar");
-    p.install(ServerType::Vanilla, "26.3", &server_dir, None, &no_progress).await.unwrap();
+    p.install(ServerType::Vanilla, "26.3", None, &server_dir, None, &no_progress).await.unwrap();
     assert_eq!(server.count("/files/vanilla-server.jar"), before);
 }
 
@@ -237,9 +237,9 @@ async fn modded_install_rejects_old_minecraft_and_needs_java() {
     let server = fixture_server();
     let dir = tempfile::tempdir().unwrap();
     let p = providers(&server, dir.path());
-    let err = p.install(ServerType::Forge, "1.16.5", dir.path(), None, &no_progress).await.unwrap_err();
+    let err = p.install(ServerType::Forge, "1.16.5", None, dir.path(), None, &no_progress).await.unwrap_err();
     assert!(err.to_string().contains("1.17"));
-    let err = p.install(ServerType::Neoforge, "26.3", dir.path(), None, &no_progress).await.unwrap_err();
+    let err = p.install(ServerType::Neoforge, "26.3", None, dir.path(), None, &no_progress).await.unwrap_err();
     assert!(err.to_string().contains("Java"));
 }
 

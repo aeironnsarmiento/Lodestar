@@ -2,6 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::addons::AddonSource;
+
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ServerType {
@@ -197,6 +199,35 @@ impl Default for ServerProperties {
     }
 }
 
+/// A file a modpack needs that its author does not let apps download.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
+#[serde(rename_all = "camelCase", default)]
+pub struct MissingFile {
+    pub file_name: String,
+    pub title: String,
+    pub page_url: String,
+}
+
+/// The modpack a server was made from.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ModpackRef {
+    /// `None` for a pack file of unknown origin.
+    pub source: Option<AddonSource>,
+    pub project_id: Option<String>,
+    pub version_id: Option<String>,
+    pub title: String,
+    pub version_number: Option<String>,
+    pub icon_url: Option<String>,
+    pub page_url: Option<String>,
+    /// A pack file picked on this PC, installed instead of a download.
+    pub file: Option<String>,
+    /// The pack's files are in the server folder.
+    pub installed: bool,
+    /// Files that must be downloaded by hand and dropped into the Mods tab.
+    pub missing: Vec<MissingFile>,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Instance {
@@ -204,6 +235,9 @@ pub struct Instance {
     pub name: String,
     pub server_type: ServerType,
     pub mc_version: String,
+    /// Exact loader build to install (modpacks pin one); `None` picks the newest stable.
+    pub loader_version: Option<String>,
+    pub modpack: Option<ModpackRef>,
     pub launch: Option<LaunchInfo>,
     /// Java feature version this instance runs on (resolved from Mojang metadata, KTD9).
     pub java_major: Option<u32>,
@@ -245,6 +279,8 @@ impl Default for Instance {
             name: String::new(),
             server_type: ServerType::Vanilla,
             mc_version: String::new(),
+            loader_version: None,
+            modpack: None,
             launch: None,
             java_major: None,
             current_world: None,
@@ -286,6 +322,8 @@ pub struct NewInstance {
     pub difficulty: Difficulty,
     pub hardcore: bool,
     pub max_players: Option<u32>,
+    pub loader_version: Option<String>,
+    pub modpack: Option<ModpackRef>,
 }
 
 /// A Minecraft player name as typed: trimmed, 1–16 letters, digits or underscores.
