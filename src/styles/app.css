@@ -266,3 +266,230 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ------------------------------------------------------------------ dashboard */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+.server-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 188px;
+  padding: var(--space-4) var(--space-5);
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+
+.server-card:hover {
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+.server-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.server-card-title {
+  min-width: 0;
+}
+
+.server-card-title h3 {
+  margin: 0 0 2px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.server-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.server-card-stats dt {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.server-card-stats dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.server-card-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.card-error {
+  font-size: 12.5px;
+}
+
+.provision {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.progress {
+  height: 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+
+.progress .bar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 300ms var(--ease);
+}
+
+.progress .bar.indeterminate {
+  width: 35%;
+  animation: slide 1.3s ease-in-out infinite;
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.new-server-card {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  min-height: 188px;
+  border: 1.5px dashed color-mix(in srgb, var(--text) 22%, transparent);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.new-server-card:hover {
+  background: var(--glass-tint);
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------------ dialogs */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  background: rgba(8, 10, 16, 0.45);
+}
+
+:root[data-theme="light"] .dialog-backdrop {
+  background: rgba(220, 226, 240, 0.45);
+}
+
+.dialog {
+  max-width: 100%;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+}
+
+:root[data-theme="light"] .dialog {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.dialog-title {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.dialog-body p {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+}
+
+.dialog-body a {
+  color: var(--accent);
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+:root[data-theme="light"] .segmented {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.segment {
+  flex: 1;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 560;
+  cursor: pointer;
+}
+
+.segment.active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.setting-control {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.setting-control .ginput {
+  width: 220px;
+}
+
+.danger-zone .section-title {
+  color: var(--danger);
+}

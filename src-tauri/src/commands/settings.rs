@@ -10,3 +10,8 @@ pub fn get_settings(app: AppState<'_>) -> AppSettings {
 pub fn set_settings(app: AppState<'_>, settings: AppSettings) -> CmdResult<AppSettings> {
     app.set_settings(settings).map_err(err)
 }
+
+#[tauri::command]
+pub fn accept_eula(app: AppState<'_>) -> CmdResult<AppSettings> {
+    app.accept_eula().map_err(err)
+}

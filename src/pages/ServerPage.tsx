@@ -4,20 +4,20 @@ import { StatusBadge } from "../components/StatusBadge";
 import { GlassButton } from "../components/glass/GlassButton";
 import { Icon } from "../components/Icon";
 import { api, SERVER_TYPE_LABELS, type Instance, type Snapshot } from "../lib/api";
-import { errorMessage, useStore } from "../state/store";
+import { stoppedSnapshot, useStore } from "../state/store";
+import { requestLaunch, runAction } from "../state/actions";
+import { badgeState } from "../components/ServerCard";
 import { OverviewTab } from "./server/OverviewTab";
 import { ConsoleTab } from "./server/ConsoleTab";
+import { SettingsTab } from "./server/SettingsTab";
 
 export type ServerTab = "overview" | "console" | "worlds" | "settings";
 
 const TABS: { id: ServerTab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "console", label: "Console" },
+  { id: "settings", label: "Settings" },
 ];
-
-export function stoppedSnapshot(id: string, port = 0): Snapshot {
-  return { id, state: "stopped", port, pid: null, players: [], cpuPercent: 0, memoryBytes: 0, uptimeSecs: null, message: null };
-}
 
 interface ServerPageProps {
   id: string;
@@ -29,7 +29,7 @@ export function ServerPage({ id, onBack, initialTab = "overview" }: ServerPagePr
   const instance = useStore((s) => s.instances.find((i) => i.id === id));
   const runtime = useStore((s) => s.runtime[id]);
   const [tab, setTab] = useState<ServerTab>(initialTab);
-  const [error, setError] = useState<string | null>(null);
+  const error = useStore((s) => s.actionErrors[id]);
 
   if (!instance) {
     return (
@@ -39,15 +39,7 @@ export function ServerPage({ id, onBack, initialTab = "overview" }: ServerPagePr
     );
   }
   const snap = runtime ?? stoppedSnapshot(id, instance.port);
-
-  const run = async (action: () => Promise<void>) => {
-    setError(null);
-    try {
-      await action();
-    } catch (e) {
-      setError(errorMessage(e));
-    }
-  };
+  const running = snap.state !== "stopped" && snap.state !== "crashed";
 
   return (
     <div className="page">
@@ -55,11 +47,11 @@ export function ServerPage({ id, onBack, initialTab = "overview" }: ServerPagePr
         leading={<BackButton onBack={onBack} />}
         title={
           <span className="row" style={{ gap: 10 }}>
-            {instance.name} <StatusBadge state={snap.state} />
+            {instance.name} <StatusBadge state={badgeState(instance, snap)} />
           </span>
         }
         subtitle={`${SERVER_TYPE_LABELS[instance.serverType]} ${instance.mcVersion} · port ${instance.port}`}
-        actions={<ServerActions instance={instance} snap={snap} run={run} />}
+        actions={<ServerActions instance={instance} snap={snap} />}
       />
       {error && (
         <p className="error-text" role="alert">
@@ -84,6 +76,7 @@ export function ServerPage({ id, onBack, initialTab = "overview" }: ServerPagePr
       <div role="tabpanel">
         {tab === "overview" && <OverviewTab instance={instance} snap={snap} />}
         {tab === "console" && <ConsoleTab instance={instance} snap={snap} />}
+        {tab === "settings" && <SettingsTab instance={instance} running={running} onDeleted={onBack} />}
       </div>
     </div>
   );
@@ -96,12 +89,12 @@ function BackButton({ onBack }: { onBack: () => void }) {
 interface ActionsProps {
   instance: Instance;
   snap: Snapshot;
-  run: (action: () => Promise<void>) => Promise<void>;
 }
 
-function ServerActions({ instance, snap, run }: ActionsProps) {
+function ServerActions({ instance, snap }: ActionsProps) {
   const s = snap.state;
   const ready = instance.provision.state === "ready";
+  const run = (action: () => Promise<void>) => runAction(instance.id, action);
   return (
     <div className="row">
       {(s === "stopped" || s === "crashed") && (
@@ -109,7 +102,7 @@ function ServerActions({ instance, snap, run }: ActionsProps) {
           variant="primary"
           icon={<Icon name="play" size={14} />}
           disabled={!ready}
-          onClick={() => run(() => api.startServer(instance.id))}
+          onClick={() => requestLaunch(instance.id)}
         >
           Launch
         </GlassButton>

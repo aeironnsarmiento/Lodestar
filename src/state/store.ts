@@ -13,11 +13,23 @@ export interface StoreState {
   progress: Record<string, TaskProgress>;
   settings: AppSettings | null;
   error: string | null;
+  /** Instance waiting on the EULA dialog before it can launch. */
+  eulaPrompt: string | null;
+  /** Last failed action per instance (launch, stop...). */
+  actionErrors: Record<string, string>;
 }
 
 type Listener = () => void;
 
-const initial = (): StoreState => ({ instances: [], runtime: {}, progress: {}, settings: null, error: null });
+const initial = (): StoreState => ({
+  instances: [],
+  runtime: {},
+  progress: {},
+  settings: null,
+  error: null,
+  eulaPrompt: null,
+  actionErrors: {},
+});
 
 let state: StoreState = initial();
 const listeners = new Set<Listener>();
@@ -59,6 +71,11 @@ export async function refreshInstances(): Promise<void> {
   } catch (e) {
     setState({ error: errorMessage(e) });
   }
+}
+
+/** What a never-started instance looks like. */
+export function stoppedSnapshot(id: string, port = 0): Snapshot {
+  return { id, state: "stopped", port, pid: null, players: [], cpuPercent: 0, memoryBytes: 0, uptimeSecs: null, message: null };
 }
 
 export function applySnapshot(snapshot: Snapshot): void {

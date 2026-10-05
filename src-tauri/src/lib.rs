@@ -4,6 +4,7 @@ pub mod download;
 pub mod java;
 pub mod providers;
 pub mod supervisor;
+pub mod worlds;
 
 use std::sync::Arc;
 
@@ -29,6 +30,8 @@ pub fn run() {
             commands::instances::update_instance,
             commands::instances::delete_instance,
             commands::instances::list_versions,
+            commands::instances::retry_provision,
+            commands::instances::open_addons_folder,
             commands::java::list_java_runtimes,
             commands::java::remove_java_runtime,
             commands::servers::start_server,
@@ -41,6 +44,7 @@ pub fn run() {
             commands::servers::join_info,
             commands::settings::get_settings,
             commands::settings::set_settings,
+            commands::settings::accept_eula,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

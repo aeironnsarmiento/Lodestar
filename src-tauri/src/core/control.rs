@@ -9,6 +9,7 @@ use serde::Serialize;
 use super::app::App;
 use super::instance::{Instance, LaunchInfo, Provision};
 use crate::providers::{launch_spec, LaunchSpec};
+use crate::worlds::properties::write_server_properties;
 use crate::supervisor::console::{log_path, ConsoleLine};
 use crate::supervisor::ports::lan_ip;
 use crate::supervisor::{Snapshot, StopReason};
@@ -45,6 +46,9 @@ impl App {
     pub async fn launch(self: &Arc<Self>, id: &str) -> Result<()> {
         let inst = self.store.get(id)?;
         Self::launch_info(&inst)?;
+        if self.settings().eula_accepted_at.is_none() {
+            bail!("Accept the Minecraft EULA before starting a server.");
+        }
         self.supervisor.prepare(id, &inst.name, inst.port)?;
         let spec = match self.prepare_launch(&inst).await {
             Ok(spec) => spec,
@@ -61,10 +65,41 @@ impl App {
     async fn prepare_launch(&self, inst: &Instance) -> Result<LaunchSpec> {
         let launch = Self::launch_info(inst)?;
         let required = inst.java_major.ok_or_else(|| anyhow!("\"{}\" has no Java version recorded.", inst.name))?;
-        let progress = self.progress(&inst.id, &format!("Downloading Java {}", crate::java::target_major(required)));
-        let java = self.java.ensure(required, &progress).await?;
+        let java = match &self.java_override {
+            Some(program) => program.clone(),
+            None => {
+                let progress = self.progress(&inst.id, &format!("Downloading Java {}", crate::java::target_major(required)));
+                self.java.ensure(required, &progress).await?
+            }
+        };
         let server_dir = self.paths().server_dir(&inst.id);
+        // Only reached after the user accepted the EULA in the app (KTD15).
+        std::fs::create_dir_all(&server_dir)?;
+        std::fs::write(
+            server_dir.join("eula.txt"),
+            "# Accepted in Glasscraft: https://aka.ms/MinecraftEULA\neula=true\n",
+        )?;
+        let seed = inst.initial_seed.clone().unwrap_or_default();
+        write_server_properties(&server_dir, inst, &seed)?;
         Ok(launch_spec(&java, &server_dir, launch, inst.ram_mb, &[]))
+    }
+
+    /// Records EULA acceptance app-wide (KTD15).
+    pub fn accept_eula(&self) -> Result<super::settings::AppSettings> {
+        self.store
+            .modify_settings(|s| s.eula_accepted_at = Some(chrono::Local::now().to_rfc3339()))
+    }
+
+    /// The folder a modded server loads mods or plugins from (R25), created if needed.
+    pub fn addons_folder(&self, id: &str) -> Result<std::path::PathBuf> {
+        let inst = self.store.get(id)?;
+        let folder = inst
+            .server_type
+            .addons_folder()
+            .ok_or_else(|| anyhow!("Vanilla servers have no mods folder."))?;
+        let dir = self.paths().server_dir(id).join(folder);
+        std::fs::create_dir_all(&dir)?;
+        Ok(dir)
     }
 
     pub fn stop_server(self: &Arc<Self>, id: &str) -> Result<()> {

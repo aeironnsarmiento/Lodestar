@@ -27,6 +27,9 @@ pub struct AppConfig {
     pub adoptium_api: String,
     pub download_backoff: Duration,
     pub stop_timeout: Duration,
+    /// Runs servers with this program instead of the managed Java. Tests use it to
+    /// substitute `fake_mc` (KTD5); the app never sets it.
+    pub java_override: Option<std::path::PathBuf>,
 }
 
 impl AppConfig {
@@ -37,6 +40,7 @@ impl AppConfig {
             adoptium_api: JavaManager::DEFAULT_API.into(),
             download_backoff: Duration::from_secs(1),
             stop_timeout: DEFAULT_STOP_TIMEOUT,
+            java_override: None,
         }
     }
 }
@@ -47,6 +51,7 @@ pub struct App {
     pub providers: Providers,
     pub java: JavaManager,
     pub supervisor: Arc<Supervisor>,
+    pub java_override: Option<std::path::PathBuf>,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -76,7 +81,7 @@ impl App {
         for inst in store.list() {
             supervisor.load_history(&inst.id, &log_path(&config.paths.server_dir(&inst.id)));
         }
-        Ok(Arc::new(Self { store, events, providers, java, supervisor }))
+        Ok(Arc::new(Self { store, events, providers, java, supervisor, java_override: config.java_override }))
     }
 
     pub fn paths(&self) -> &Paths {

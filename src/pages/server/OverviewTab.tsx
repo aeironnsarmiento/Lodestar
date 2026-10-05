@@ -47,6 +47,13 @@ export function OverviewTab({ instance, snap }: OverviewTabProps) {
           <dt>World</dt>
           <dd className="mono">{instance.currentWorld ?? "Created on first launch"}</dd>
         </dl>
+        {instance.serverType !== "vanilla" && (
+          <div style={{ marginTop: 16 }}>
+            <GlassButton size="sm" icon={<Icon name="folder" size={14} />} onClick={() => api.openAddonsFolder(instance.id).catch(() => {})}>
+              {instance.serverType === "paper" ? "Open plugins folder" : "Open mods folder"}
+            </GlassButton>
+          </div>
+        )}
       </section>
     </div>
   );

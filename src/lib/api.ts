@@ -134,6 +134,8 @@ export const api = {
   updateInstance: (instance: Instance) => invoke<Instance>("update_instance", { instance }),
   deleteInstance: (id: string) => invoke<void>("delete_instance", { id }),
 
+  retryProvision: (id: string) => invoke<void>("retry_provision", { id }),
+  openAddonsFolder: (id: string) => invoke<void>("open_addons_folder", { id }),
   listVersions: (serverType: ServerType) => invoke<VersionEntry[]>("list_versions", { serverType }),
 
   listJavaRuntimes: () => invoke<JavaRuntime[]>("list_java_runtimes"),
@@ -150,4 +152,5 @@ export const api = {
 
   getSettings: () => invoke<AppSettings>("get_settings"),
   setSettings: (settings: AppSettings) => invoke<AppSettings>("set_settings", { settings }),
+  acceptEula: () => invoke<AppSettings>("accept_eula"),
 };

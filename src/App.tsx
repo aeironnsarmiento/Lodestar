@@ -15,7 +15,9 @@ import {
   supportsRefraction,
   type Theme,
 } from "./lib/theme";
-import { loadSettings, saveSettings } from "./state/store";
+import { loadSettings, saveSettings, useStore } from "./state/store";
+import { acceptEulaAndLaunch, declineEula } from "./state/actions";
+import { EulaDialog } from "./dialogs/EulaDialog";
 import { startSync } from "./state/sync";
 
 function App() {
@@ -28,6 +30,7 @@ function App() {
   });
   const [reduceEffects, setReduceEffects] = useState(readStoredReduceEffects);
   const refraction = useMemo(supportsRefraction, []);
+  const eulaPrompt = useStore((s) => s.eulaPrompt);
 
   // The backend settings file is the source of truth for theme and effects.
   useEffect(() => {
@@ -75,6 +78,7 @@ function App() {
           {!serverId && area === "settings" && <SettingsPage reduceEffects={reduceEffects} onReduceEffects={changeReduceEffects} />}
         </main>
       </div>
+      {eulaPrompt && <EulaDialog onAccept={acceptEulaAndLaunch} onDecline={declineEula} />}
     </EffectsContext.Provider>
   );
 }
