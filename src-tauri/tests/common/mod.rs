@@ -136,3 +136,87 @@ pub fn sha256_hex(data: &[u8]) -> String {
     use sha2::Digest;
     hex::encode(sha2::Sha256::digest(data))
 }
+
+/// Serves the recorded fixtures with every download URL rewritten to the test server.
+pub fn fixture_server() -> TestServer {
+    TestServer::start(|req| {
+        let base = format!("http://{}", req.header("host").unwrap());
+        let p = req.path.as_str();
+        match p {
+            "/mojang/version_manifest_v2.json" => {
+                let mut m: serde_json::Value = serde_json::from_str(&fixture("providers/mojang_manifest.json")).unwrap();
+                for v in m["versions"].as_array_mut().unwrap() {
+                    let id = v["id"].as_str().unwrap().to_string();
+                    v["url"] = format!("{base}/mojang/v/{id}.json").into();
+                }
+                Response::json(m)
+            }
+            "/mojang/v/26.3.json" | "/mojang/v/1.16.1.json" => {
+                let name = p.trim_start_matches("/mojang/v/");
+                let mut d: serde_json::Value = serde_json::from_str(&fixture(&format!("providers/mojang_{name}"))).unwrap();
+                d["downloads"]["server"]["url"] = format!("{base}/files/vanilla-server.jar").into();
+                d["downloads"]["server"]["sha1"] = sha1_hex(b"vanilla server").into();
+                Response::json(d)
+            }
+            "/files/vanilla-server.jar" => Response::ok(b"vanilla server".to_vec()),
+            "/paper/versions/26.3/builds/latest" => {
+                let mut b: serde_json::Value = serde_json::from_str(&fixture("providers/paper_build_latest.json")).unwrap();
+                b["downloads"]["server:default"]["url"] = format!("{base}/files/paper.jar").into();
+                b["downloads"]["server:default"]["checksums"]["sha256"] = sha256_hex(b"paper server").into();
+                Response::json(b)
+            }
+            "/files/paper.jar" => Response::ok(b"paper server".to_vec()),
+            "/fabric/versions/game" => Response::ok(fixture("providers/fabric_game.json")),
+            "/fabric/versions/loader" => Response::ok(fixture("providers/fabric_loader.json")),
+            "/fabric/versions/installer" => Response::ok(fixture("providers/fabric_installer.json")),
+            "/fabric/versions/loader/26.3/0.19.5/1.1.2/server/jar" => Response::ok(b"fabric launcher".to_vec()),
+            "/paper" => Response::ok(fixture("providers/paper_project.json")),
+            "/forge/maven/maven-metadata.xml" => Response::ok(fixture("providers/forge_maven_metadata.xml")),
+            "/neoforge/api" => Response::ok(fixture("providers/neoforge_versions.json")),
+            _ if p.starts_with("/modrinth/project/lithium/") => {
+                let mut l: serde_json::Value = serde_json::from_str(&fixture("providers/modrinth_lithium_26.3.json")).unwrap();
+                for v in l.as_array_mut().unwrap() {
+                    for f in v["files"].as_array_mut().unwrap() {
+                        f["url"] = format!("{base}/files/lithium.jar").into();
+                        f["hashes"]["sha1"] = sha1_hex(b"lithium").into();
+                    }
+                }
+                Response::json(l)
+            }
+            "/files/lithium.jar" => Response::ok(b"lithium".to_vec()),
+            _ if p.starts_with("/modrinth/project/ferrite-core/") => Response::ok(fixture("providers/modrinth_empty.json")),
+            _ if p.starts_with("/adoptium/assets/latest/") => {
+                let major: u32 = p["/adoptium/assets/latest/".len()..].split('/').next().unwrap().parse().unwrap();
+                let zip = jre_zip(major);
+                Response::json(serde_json::json!([{ "binary": { "package": {
+                    "link": format!("{base}/files/jre-{major}.zip"),
+                    "checksum": sha256_hex(&zip),
+                    "name": format!("OpenJDK{major}U-jre_x64_windows_hotspot.zip"),
+                }}}]))
+            }
+            _ if p.starts_with("/files/jre-") => {
+                let major: u32 = p.trim_start_matches("/files/jre-").trim_end_matches(".zip").parse().unwrap();
+                Response::ok(jre_zip(major))
+            }
+            _ => Response::status(404),
+        }
+    })
+}
+
+/// A fake Temurin JRE zip: one top-level folder with `bin/java.exe` and a `release` file.
+pub fn jre_zip(major: u32) -> Vec<u8> {
+    use std::io::Write as _;
+    let mut buf = std::io::Cursor::new(Vec::new());
+    {
+        let mut z = zip::ZipWriter::new(&mut buf);
+        let opts = zip::write::SimpleFileOptions::default().last_modified_time(zip::DateTime::default());
+        let top = format!("jdk-{major}.0.1+9-jre");
+        z.start_file(format!("{top}/bin/java.exe"), opts).unwrap();
+        z.write_all(b"not a real java").unwrap();
+        z.start_file(format!("{top}/release"), opts).unwrap();
+        z.write_all(format!("JAVA_VERSION=\"{major}.0.1\"
+").as_bytes()).unwrap();
+        z.finish().unwrap();
+    }
+    buf.into_inner()
+}

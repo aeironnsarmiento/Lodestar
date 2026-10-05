@@ -69,6 +69,19 @@ export interface AppSettings {
   eulaAcceptedAt: string | null;
 }
 
+export interface VersionEntry {
+  id: string;
+  kind: "release" | "snapshot";
+  releaseTime: string | null;
+}
+
+export interface JavaRuntime {
+  major: number;
+  path: string;
+  sizeBytes: number;
+  inUse: boolean;
+}
+
 export const SERVER_TYPE_LABELS: Record<ServerType, string> = {
   vanilla: "Vanilla",
   paper: "Paper",
@@ -87,6 +100,11 @@ export const api = {
   createInstance: (newInstance: NewInstance) => invoke<Instance>("create_instance", { new: newInstance }),
   updateInstance: (instance: Instance) => invoke<Instance>("update_instance", { instance }),
   deleteInstance: (id: string) => invoke<void>("delete_instance", { id }),
+
+  listVersions: (serverType: ServerType) => invoke<VersionEntry[]>("list_versions", { serverType }),
+
+  listJavaRuntimes: () => invoke<JavaRuntime[]>("list_java_runtimes"),
+  removeJavaRuntime: (major: number) => invoke<void>("remove_java_runtime", { major }),
 
   getSettings: () => invoke<AppSettings>("get_settings"),
   setSettings: (settings: AppSettings) => invoke<AppSettings>("set_settings", { settings }),

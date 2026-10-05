@@ -6,6 +6,7 @@ use std::sync::Arc;
 use crate::core::app::App;
 
 pub mod instances;
+pub mod java;
 pub mod settings;
 
 pub type AppState<'a> = tauri::State<'a, Arc<App>>;

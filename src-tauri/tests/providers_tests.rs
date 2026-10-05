@@ -3,7 +3,7 @@ mod common;
 use std::path::Path;
 use std::time::Duration;
 
-use common::{fixture, sha1_hex, sha256_hex, Response, TestServer};
+use common::{fixture, fixture_server, TestServer};
 use glasscraft_lib::core::instance::{LaunchInfo, ServerType};
 use glasscraft_lib::core::paths::Paths;
 use glasscraft_lib::download::{no_progress, Downloader};
@@ -169,59 +169,6 @@ fn modrinth_pick_uses_the_primary_file_and_none_when_no_build_exists() {
     assert!(pick.filename.ends_with(".jar"));
     assert_eq!(pick.sha1.len(), 40);
     assert_eq!(modrinth::pick("[]").unwrap(), None);
-}
-
-/// Serves the recorded fixtures with every download URL rewritten to the test server.
-fn fixture_server() -> TestServer {
-    TestServer::start(|req| {
-        let base = format!("http://{}", req.header("host").unwrap());
-        let p = req.path.as_str();
-        match p {
-            "/mojang/version_manifest_v2.json" => {
-                let mut m: serde_json::Value = serde_json::from_str(&fixture("providers/mojang_manifest.json")).unwrap();
-                for v in m["versions"].as_array_mut().unwrap() {
-                    let id = v["id"].as_str().unwrap().to_string();
-                    v["url"] = format!("{base}/mojang/v/{id}.json").into();
-                }
-                Response::json(m)
-            }
-            "/mojang/v/26.3.json" | "/mojang/v/1.16.1.json" => {
-                let name = p.trim_start_matches("/mojang/v/");
-                let mut d: serde_json::Value = serde_json::from_str(&fixture(&format!("providers/mojang_{name}"))).unwrap();
-                d["downloads"]["server"]["url"] = format!("{base}/files/vanilla-server.jar").into();
-                d["downloads"]["server"]["sha1"] = sha1_hex(b"vanilla server").into();
-                Response::json(d)
-            }
-            "/files/vanilla-server.jar" => Response::ok(b"vanilla server".to_vec()),
-            "/paper/versions/26.3/builds/latest" => {
-                let mut b: serde_json::Value = serde_json::from_str(&fixture("providers/paper_build_latest.json")).unwrap();
-                b["downloads"]["server:default"]["url"] = format!("{base}/files/paper.jar").into();
-                b["downloads"]["server:default"]["checksums"]["sha256"] = sha256_hex(b"paper server").into();
-                Response::json(b)
-            }
-            "/files/paper.jar" => Response::ok(b"paper server".to_vec()),
-            "/fabric/versions/game" => Response::ok(fixture("providers/fabric_game.json")),
-            "/fabric/versions/loader" => Response::ok(fixture("providers/fabric_loader.json")),
-            "/fabric/versions/installer" => Response::ok(fixture("providers/fabric_installer.json")),
-            "/fabric/versions/loader/26.3/0.19.5/1.1.2/server/jar" => Response::ok(b"fabric launcher".to_vec()),
-            "/paper" => Response::ok(fixture("providers/paper_project.json")),
-            "/forge/maven/maven-metadata.xml" => Response::ok(fixture("providers/forge_maven_metadata.xml")),
-            "/neoforge/api" => Response::ok(fixture("providers/neoforge_versions.json")),
-            _ if p.starts_with("/modrinth/project/lithium/") => {
-                let mut l: serde_json::Value = serde_json::from_str(&fixture("providers/modrinth_lithium_26.3.json")).unwrap();
-                for v in l.as_array_mut().unwrap() {
-                    for f in v["files"].as_array_mut().unwrap() {
-                        f["url"] = format!("{base}/files/lithium.jar").into();
-                        f["hashes"]["sha1"] = sha1_hex(b"lithium").into();
-                    }
-                }
-                Response::json(l)
-            }
-            "/files/lithium.jar" => Response::ok(b"lithium".to_vec()),
-            _ if p.starts_with("/modrinth/project/ferrite-core/") => Response::ok(fixture("providers/modrinth_empty.json")),
-            _ => Response::status(404),
-        }
-    })
 }
 
 fn providers(server: &TestServer, root: &Path) -> Providers {
