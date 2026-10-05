@@ -544,11 +544,6 @@ impl Supervisor {
         self.runtime(id).snapshot()
     }
 
-    pub fn snapshots(&self) -> Vec<Snapshot> {
-        let list: Vec<Arc<Runtime>> = self.runtimes.lock().unwrap().values().cloned().collect();
-        list.iter().map(|r| r.snapshot()).collect()
-    }
-
     pub fn console(&self, id: &str) -> Vec<ConsoleLine> {
         self.runtime(id).inner.lock().unwrap().console.lines()
     }

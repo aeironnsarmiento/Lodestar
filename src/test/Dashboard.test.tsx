@@ -124,6 +124,22 @@ describe("Server card buttons", () => {
     expect(!(reset as HTMLButtonElement).disabled).toBe(expected.reset);
   });
 
+  it("offers restart while online and force kill while stopping", async () => {
+    const user = userEvent.setup();
+    const onRestart = vi.fn();
+    const onKill = vi.fn();
+    const props = { instance: makeInstance(), onOpen: noop, onLaunch: noop, onStop: noop, onRestart, onKill, onRetry: noop };
+    const { rerender } = render(<ServerCard {...props} snap={makeSnapshot({ state: "online" })} />);
+    await user.click(screen.getByRole("button", { name: "Restart" }));
+    expect(onRestart).toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: /force kill/i })).not.toBeInTheDocument();
+
+    rerender(<ServerCard {...props} snap={makeSnapshot({ state: "stopping" })} />);
+    expect(screen.queryByRole("button", { name: "Restart" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /force kill/i }));
+    expect(onKill).toHaveBeenCalled();
+  });
+
   it("shows live CPU, RAM and players while online", () => {
     render(
       <ServerCard

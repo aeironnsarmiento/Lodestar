@@ -114,7 +114,7 @@ function ServerActions({ instance, snap }: ActionsProps) {
         </GlassButton>
       )}
       {s === "online" && (
-        <GlassButton icon={<Icon name="reset" size={16} />} onClick={() => run(() => api.restartServer(instance.id))}>
+        <GlassButton icon={<Icon name="restart" size={16} />} onClick={() => run(() => api.restartServer(instance.id))}>
           Restart
         </GlassButton>
       )}

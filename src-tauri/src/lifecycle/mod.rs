@@ -35,11 +35,6 @@ impl ManualClock {
     pub fn set(&self, t: DateTime<Local>) {
         *self.0.lock().unwrap() = t;
     }
-
-    pub fn advance(&self, d: chrono::Duration) {
-        let mut t = self.0.lock().unwrap();
-        *t += d;
-    }
 }
 
 impl Clock for ManualClock {

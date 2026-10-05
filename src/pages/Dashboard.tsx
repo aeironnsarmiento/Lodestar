@@ -45,6 +45,8 @@ export function Dashboard({ onOpen }: DashboardProps) {
             onOpen={() => onOpen(inst.id)}
             onLaunch={() => requestLaunch(inst.id)}
             onStop={() => runAction(inst.id, () => api.stopServer(inst.id))}
+            onRestart={() => runAction(inst.id, () => api.restartServer(inst.id))}
+            onKill={() => runAction(inst.id, () => api.killServer(inst.id))}
             onReset={(seed) => requestReset(inst.id, seed)}
             onRetry={() => runAction(inst.id, () => api.retryProvision(inst.id))}
           />

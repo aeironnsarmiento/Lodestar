@@ -149,10 +149,6 @@ impl Providers {
         }
     }
 
-    pub fn paths(&self) -> &Paths {
-        &self.paths
-    }
-
     pub async fn manifest(&self) -> Result<mojang::Manifest> {
         let mut guard = self.manifest.lock().await;
         if let Some(m) = guard.as_ref() {

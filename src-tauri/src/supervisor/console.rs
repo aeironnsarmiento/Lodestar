@@ -111,10 +111,6 @@ impl Console {
         self.ring.iter().cloned().collect()
     }
 
-    pub fn len(&self) -> usize {
-        self.ring.len()
-    }
-
     pub fn is_empty(&self) -> bool {
         self.ring.is_empty()
     }

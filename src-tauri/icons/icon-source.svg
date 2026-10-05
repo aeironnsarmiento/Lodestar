@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#2a3550"/>
+      <stop offset="1" stop-color="#11151f"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b6f29a"/>
+      <stop offset="1" stop-color="#4fb35c"/>
+    </linearGradient>
+    <linearGradient id="left" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a6140"/>
+      <stop offset="1" stop-color="#5c3f27"/>
+    </linearGradient>
+    <linearGradient id="right" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b4a2f"/>
+      <stop offset="1" stop-color="#3f2a19"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.34"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.08"/>
+    </linearGradient>
+    <clipPath id="squircle">
+      <rect x="64" y="64" width="896" height="896" rx="216"/>
+    </clipPath>
+  </defs>
+
+  <rect x="64" y="64" width="896" height="896" rx="216" fill="url(#bg)"/>
+  <g clip-path="url(#squircle)">
+    <circle cx="300" cy="260" r="360" fill="#7aa7ff" opacity="0.18"/>
+    <circle cx="820" cy="860" r="320" fill="#8ee07a" opacity="0.12"/>
+  </g>
+
+  <!-- grass block -->
+  <g>
+    <polygon points="278,400 512,535 512,805 278,670" fill="url(#left)"/>
+    <polygon points="512,535 746,400 746,670 512,805" fill="url(#right)"/>
+    <polygon points="278,400 512,535 512,598 278,463" fill="#5ec05e"/>
+    <polygon points="512,535 746,400 746,463 512,598" fill="#46a04c"/>
+    <polygon points="300,463 330,480 330,500 300,483" fill="#5ec05e"/>
+    <polygon points="380,509 410,526 410,552 380,535" fill="#5ec05e"/>
+    <polygon points="560,575 590,558 590,584 560,601" fill="#46a04c"/>
+    <polygon points="680,506 710,489 710,509 680,526" fill="#46a04c"/>
+    <polygon points="330,560 352,573 352,595 330,582" fill="#4a3220" opacity="0.6"/>
+    <polygon points="430,650 452,663 452,685 430,672" fill="#4a3220" opacity="0.6"/>
+    <polygon points="620,640 642,627 642,649 620,662" fill="#2e1f12" opacity="0.6"/>
+    <polygon points="700,580 722,567 722,589 700,602" fill="#2e1f12" opacity="0.6"/>
+    <polygon points="512,265 746,400 512,535 278,400" fill="url(#top)"/>
+    <polygon points="512,265 746,400 512,535 278,400" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+
+  <!-- glass: gloss and rim -->
+  <rect x="64" y="64" width="896" height="896" rx="216" fill="url(#gloss)"/>
+  <rect x="70" y="70" width="884" height="884" rx="210" fill="none" stroke="url(#rim)" stroke-width="12"/>
+</svg>

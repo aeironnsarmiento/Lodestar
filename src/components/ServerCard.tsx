@@ -16,6 +16,8 @@ interface ServerCardProps {
   onOpen: () => void;
   onLaunch: () => void;
   onStop: () => void;
+  onRestart?: () => void;
+  onKill?: () => void;
   onReset?: (seed: string | null) => void;
   onRetry: () => void;
 }
@@ -32,7 +34,20 @@ const stop = (fn: () => void) => (e: MouseEvent) => {
   fn();
 };
 
-export function ServerCard({ instance, snap, progress, error, tunnel, onOpen, onLaunch, onStop, onReset, onRetry }: ServerCardProps) {
+export function ServerCard({
+  instance,
+  snap,
+  progress,
+  error,
+  tunnel,
+  onOpen,
+  onLaunch,
+  onStop,
+  onRestart,
+  onKill,
+  onReset,
+  onRetry,
+}: ServerCardProps) {
   const badge = badgeState(instance, snap);
   const ready = instance.provision.state === "ready";
   const s = snap.state;
@@ -112,7 +127,11 @@ export function ServerCard({ instance, snap, progress, error, tunnel, onOpen, on
           </GlassButton>
         ) : (
           <>
-            {canStop ? (
+            {s === "stopping" && onKill ? (
+              <GlassButton size="sm" variant="danger" icon={<Icon name="kill" size={13} />} onClick={stop(onKill)}>
+                Force kill
+              </GlassButton>
+            ) : canStop ? (
               <GlassButton size="sm" icon={<Icon name="stop" size={12} />} onClick={stop(onStop)}>
                 Stop
               </GlassButton>
@@ -122,6 +141,9 @@ export function ServerCard({ instance, snap, progress, error, tunnel, onOpen, on
               </GlassButton>
             )}
             {onReset && <ResetButton size="sm" disabled={!canReset} onReset={onReset} />}
+            {onRestart && s === "online" && (
+              <GlassButton size="sm" iconOnly aria-label="Restart" title="Restart" icon={<Icon name="restart" size={14} />} onClick={stop(onRestart)} />
+            )}
           </>
         )}
       </footer>
