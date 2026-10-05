@@ -3,6 +3,7 @@ pub mod core;
 pub mod download;
 pub mod java;
 pub mod providers;
+pub mod supervisor;
 
 use std::sync::Arc;
 
@@ -30,6 +31,14 @@ pub fn run() {
             commands::instances::list_versions,
             commands::java::list_java_runtimes,
             commands::java::remove_java_runtime,
+            commands::servers::start_server,
+            commands::servers::stop_server,
+            commands::servers::restart_server,
+            commands::servers::kill_server,
+            commands::servers::send_command,
+            commands::servers::get_console,
+            commands::servers::server_snapshots,
+            commands::servers::join_info,
             commands::settings::get_settings,
             commands::settings::set_settings,
         ])

@@ -288,6 +288,8 @@ impl Providers {
 /// JVM flags used for every server (Aikar's G1 set, minus ones that slow startup).
 fn jvm_flags(ram_mb: u32) -> Vec<String> {
     let mut v = vec![format!("-Xms{ram_mb}M"), format!("-Xmx{ram_mb}M")];
+    // The console is read through pipes; make Java write it as UTF-8.
+    v.extend(["-Dfile.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8"].map(String::from));
     v.extend(
         [
             "-XX:+UseG1GC",

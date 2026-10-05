@@ -82,6 +82,39 @@ export interface JavaRuntime {
   inUse: boolean;
 }
 
+export type ServerState = "stopped" | "preparing" | "starting" | "online" | "stopping" | "crashed";
+
+export interface Snapshot {
+  id: string;
+  state: ServerState;
+  port: number;
+  pid: number | null;
+  players: string[];
+  cpuPercent: number;
+  memoryBytes: number;
+  uptimeSecs: number | null;
+  message: string | null;
+}
+
+export interface ConsoleLine {
+  seq: number;
+  text: string;
+  history: boolean;
+}
+
+export interface JoinInfo {
+  localhost: string;
+  lan: string | null;
+  public: string | null;
+}
+
+export interface TaskProgress {
+  task: string;
+  label: string;
+  done: number;
+  total: number | null;
+}
+
 export const SERVER_TYPE_LABELS: Record<ServerType, string> = {
   vanilla: "Vanilla",
   paper: "Paper",
@@ -105,6 +138,15 @@ export const api = {
 
   listJavaRuntimes: () => invoke<JavaRuntime[]>("list_java_runtimes"),
   removeJavaRuntime: (major: number) => invoke<void>("remove_java_runtime", { major }),
+
+  startServer: (id: string) => invoke<void>("start_server", { id }),
+  stopServer: (id: string) => invoke<void>("stop_server", { id }),
+  restartServer: (id: string) => invoke<void>("restart_server", { id }),
+  killServer: (id: string) => invoke<void>("kill_server", { id }),
+  sendCommand: (id: string, command: string) => invoke<void>("send_command", { id, command }),
+  getConsole: (id: string) => invoke<ConsoleLine[]>("get_console", { id }),
+  serverSnapshots: () => invoke<Snapshot[]>("server_snapshots"),
+  joinInfo: (id: string) => invoke<JoinInfo>("join_info", { id }),
 
   getSettings: () => invoke<AppSettings>("get_settings"),
   setSettings: (settings: AppSettings) => invoke<AppSettings>("set_settings", { settings }),

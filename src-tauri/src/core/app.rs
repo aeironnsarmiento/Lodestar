@@ -1,6 +1,5 @@
 //! The backend service that Tauri commands call into. It owns the store, providers,
-//! Java runtimes and the event sink; later units hang the supervisor, worlds and
-//! playit off it.
+//! Java runtimes, the process supervisor and the event sink.
 
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
@@ -17,6 +16,8 @@ use super::store::Store;
 use crate::download::Downloader;
 use crate::java::{InstalledRuntime, JavaManager};
 use crate::providers::{Endpoints, Providers, VersionEntry};
+use crate::supervisor::console::log_path;
+use crate::supervisor::{Supervisor, DEFAULT_STOP_TIMEOUT};
 
 /// Where the app's data lives and which services it talks to.
 #[derive(Clone)]
@@ -25,6 +26,7 @@ pub struct AppConfig {
     pub endpoints: Endpoints,
     pub adoptium_api: String,
     pub download_backoff: Duration,
+    pub stop_timeout: Duration,
 }
 
 impl AppConfig {
@@ -34,6 +36,7 @@ impl AppConfig {
             endpoints: Endpoints::default(),
             adoptium_api: JavaManager::DEFAULT_API.into(),
             download_backoff: Duration::from_secs(1),
+            stop_timeout: DEFAULT_STOP_TIMEOUT,
         }
     }
 }
@@ -43,6 +46,7 @@ pub struct App {
     pub events: Events,
     pub providers: Providers,
     pub java: JavaManager,
+    pub supervisor: Arc<Supervisor>,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -68,15 +72,19 @@ impl App {
         let downloader = Downloader::new().with_backoff(config.download_backoff);
         let providers = Providers::new(config.paths.clone(), downloader.clone(), config.endpoints.clone());
         let java = JavaManager::new(config.paths.java_runtimes_dir(), downloader, config.adoptium_api.clone());
-        Ok(Arc::new(Self { store, events, providers, java }))
+        let supervisor = Supervisor::with_stop_timeout(events.clone(), config.stop_timeout);
+        for inst in store.list() {
+            supervisor.load_history(&inst.id, &log_path(&config.paths.server_dir(&inst.id)));
+        }
+        Ok(Arc::new(Self { store, events, providers, java, supervisor }))
     }
 
     pub fn paths(&self) -> &Paths {
         self.store.paths()
     }
 
-    pub fn is_running(&self, _id: &str) -> bool {
-        false
+    pub fn is_running(&self, id: &str) -> bool {
+        self.supervisor.is_running(id)
     }
 
     pub fn notify_instances_changed(&self) {

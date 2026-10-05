@@ -1,0 +1,89 @@
+import { useEffect, useState } from "react";
+import { GlassButton } from "../../components/glass/GlassButton";
+import { Icon } from "../../components/Icon";
+import { api, SERVER_TYPE_LABELS, type Instance, type JoinInfo, type Snapshot } from "../../lib/api";
+import { formatBytes, formatPercent, formatUptime } from "../../lib/format";
+
+interface OverviewTabProps {
+  instance: Instance;
+  snap: Snapshot;
+}
+
+export function OverviewTab({ instance, snap }: OverviewTabProps) {
+  const [join, setJoin] = useState<JoinInfo | null>(null);
+  const running = snap.state === "starting" || snap.state === "online" || snap.state === "stopping";
+
+  useEffect(() => {
+    api.joinInfo(instance.id).then(setJoin).catch(() => setJoin(null));
+  }, [instance.id, instance.port, snap.state]);
+
+  return (
+    <div className="stack" style={{ gap: 16 }}>
+      <div className="stat-grid">
+        <Stat label="CPU" value={running ? formatPercent(snap.cpuPercent) : "—"} />
+        <Stat label="Memory" value={running && snap.memoryBytes ? formatBytes(snap.memoryBytes) : "—"} />
+        <Stat label="Players" value={`${snap.players.length} / ${instance.maxPlayers}`} />
+        <Stat label="Uptime" value={running ? formatUptime(snap.uptimeSecs) : "—"} />
+      </div>
+
+      <section className="surface panel">
+        <h2 className="section-title">Join addresses</h2>
+        <AddressRow label="This PC" value={join?.localhost ?? `localhost:${instance.port}`} />
+        <AddressRow label="Same Wi-Fi / LAN" value={join?.lan ?? null} empty="No network connection found" />
+        <AddressRow label="Friends anywhere (playit.gg)" value={join?.public ?? null} empty="Set up playit.gg to get a public address" />
+      </section>
+
+      <section className="surface panel">
+        <h2 className="section-title">Server</h2>
+        <dl className="facts">
+          <dt>Type</dt>
+          <dd>
+            {SERVER_TYPE_LABELS[instance.serverType]} {instance.mcVersion}
+          </dd>
+          <dt>Java</dt>
+          <dd>{instance.javaMajor ? `Java ${instance.javaMajor}+` : "—"}</dd>
+          <dt>Memory</dt>
+          <dd>{(instance.ramMb / 1024).toFixed(instance.ramMb % 1024 ? 1 : 0)} GB</dd>
+          <dt>World</dt>
+          <dd className="mono">{instance.currentWorld ?? "Created on first launch"}</dd>
+        </dl>
+      </section>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="surface stat">
+      <div className="stat-label">{label}</div>
+      <div className="stat-value">{value}</div>
+    </div>
+  );
+}
+
+export function AddressRow({ label, value, empty }: { label: string; value: string | null; empty?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard access can be refused; the address is still visible to copy by hand.
+    }
+  };
+  return (
+    <div className="setting-row">
+      <div>
+        <div className="hint">{label}</div>
+        <div className={value ? "mono address" : "muted"}>{value ?? empty}</div>
+      </div>
+      {value && (
+        <GlassButton size="sm" icon={<Icon name={copied ? "check" : "copy"} size={14} />} onClick={copy} aria-label={`Copy ${label} address`}>
+          {copied ? "Copied" : "Copy"}
+        </GlassButton>
+      )}
+    </div>
+  );
+}

@@ -3,17 +3,23 @@
  * it is filled from commands and kept fresh by backend events.
  */
 import { useSyncExternalStore } from "react";
-import { api, type AppSettings, type Instance } from "../lib/api";
+import { api, type AppSettings, type Instance, type Snapshot, type TaskProgress } from "../lib/api";
 
 export interface StoreState {
   instances: Instance[];
+  /** Live state per instance id. */
+  runtime: Record<string, Snapshot>;
+  /** Latest download/setup progress per instance id. */
+  progress: Record<string, TaskProgress>;
   settings: AppSettings | null;
   error: string | null;
 }
 
 type Listener = () => void;
 
-let state: StoreState = { instances: [], settings: null, error: null };
+const initial = (): StoreState => ({ instances: [], runtime: {}, progress: {}, settings: null, error: null });
+
+let state: StoreState = initial();
 const listeners = new Set<Listener>();
 
 export function getState(): StoreState {
@@ -37,7 +43,7 @@ export function useStore<T>(select: (s: StoreState) => T): T {
 
 /** Test helper: back to an empty store. */
 export function resetStore(): void {
-  state = { instances: [], settings: null, error: null };
+  state = initial();
   listeners.forEach((l) => l());
 }
 
@@ -50,6 +56,30 @@ export function errorMessage(e: unknown): string {
 export async function refreshInstances(): Promise<void> {
   try {
     setState({ instances: await api.listInstances(), error: null });
+  } catch (e) {
+    setState({ error: errorMessage(e) });
+  }
+}
+
+export function applySnapshot(snapshot: Snapshot): void {
+  setState((s) => ({ runtime: { ...s.runtime, [snapshot.id]: snapshot } }));
+}
+
+export function applyPlayers(id: string, players: string[]): void {
+  setState((s) => {
+    const current = s.runtime[id];
+    return current ? { runtime: { ...s.runtime, [id]: { ...current, players } } } : {};
+  });
+}
+
+export function applyProgress(progress: TaskProgress): void {
+  setState((s) => ({ progress: { ...s.progress, [progress.task]: progress } }));
+}
+
+export async function refreshSnapshots(): Promise<void> {
+  try {
+    const list = await api.serverSnapshots();
+    setState({ runtime: Object.fromEntries(list.map((x) => [x.id, x])) });
   } catch (e) {
     setState({ error: errorMessage(e) });
   }

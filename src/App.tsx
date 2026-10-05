@@ -5,8 +5,8 @@ import { Dashboard } from "./pages/Dashboard";
 import { PlayitPage } from "./pages/PlayitPage";
 import { JavaPage } from "./pages/JavaPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { ServerPage } from "./pages/ServerPage";
 import { inTauri } from "./lib/api";
-import { on } from "./lib/events";
 import {
   applyReduceEffects,
   applyTheme,
@@ -15,10 +15,12 @@ import {
   supportsRefraction,
   type Theme,
 } from "./lib/theme";
-import { loadSettings, refreshInstances, saveSettings } from "./state/store";
+import { loadSettings, saveSettings } from "./state/store";
+import { startSync } from "./state/sync";
 
 function App() {
   const [area, setArea] = useState<AppArea>("dashboard");
+  const [serverId, setServerId] = useState<string | null>(null);
   const [theme, setTheme] = useState<Theme>(() => {
     const t = readStoredTheme();
     applyTheme(t);
@@ -30,7 +32,6 @@ function App() {
   // The backend settings file is the source of truth for theme and effects.
   useEffect(() => {
     if (!inTauri()) return;
-    let unlisten: (() => void) | undefined;
     loadSettings()
       .then((s) => {
         applyTheme(s.theme);
@@ -39,10 +40,13 @@ function App() {
         setReduceEffects(s.reduceEffects);
       })
       .catch(() => {});
-    refreshInstances();
-    on("instances-changed", () => refreshInstances()).then((u) => (unlisten = u));
-    return () => unlisten?.();
+    return startSync();
   }, []);
+
+  const navigate = (next: AppArea) => {
+    setServerId(null);
+    setArea(next);
+  };
 
   const toggleTheme = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -62,12 +66,13 @@ function App() {
       <RefractionFilter />
       <div className="backdrop" aria-hidden="true" />
       <div className="app">
-        <Sidebar active={area} onNavigate={setArea} theme={theme} onToggleTheme={toggleTheme} />
+        <Sidebar active={area} onNavigate={navigate} theme={theme} onToggleTheme={toggleTheme} />
         <main className="main">
-          {area === "dashboard" && <Dashboard />}
-          {area === "playit" && <PlayitPage />}
-          {area === "java" && <JavaPage />}
-          {area === "settings" && <SettingsPage reduceEffects={reduceEffects} onReduceEffects={changeReduceEffects} />}
+          {serverId && <ServerPage key={serverId} id={serverId} onBack={() => setServerId(null)} />}
+          {!serverId && area === "dashboard" && <Dashboard onOpen={setServerId} />}
+          {!serverId && area === "playit" && <PlayitPage />}
+          {!serverId && area === "java" && <JavaPage />}
+          {!serverId && area === "settings" && <SettingsPage reduceEffects={reduceEffects} onReduceEffects={changeReduceEffects} />}
         </main>
       </div>
     </EffectsContext.Provider>
