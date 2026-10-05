@@ -1,0 +1,116 @@
+/*
+ * Design tokens. Two themes:
+ *  - dark: a solid, readable app; glass only on chrome (sidebar, header, floating controls)
+ *  - light: milky white glass with dark text over a soft pastel layer
+ */
+
+:root {
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --blur-chrome: 28px;
+  --blur-control: 14px;
+  --saturate: 180%;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur: 160ms;
+
+  --sidebar-width: 224px;
+}
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #16181f;
+  --bg-raised: #1d2029;
+  --bg-sunken: #12141a;
+  --text: #eef0f6;
+  --text-muted: #a3a9b8;
+  --text-faint: #6f7586;
+  --border: rgba(255, 255, 255, 0.08);
+
+  /* glass */
+  --glass-tint: rgba(255, 255, 255, 0.06);
+  --glass-tint-strong: rgba(255, 255, 255, 0.1);
+  --glass-tint-hover: rgba(255, 255, 255, 0.14);
+  --glass-flat: #23262f;
+  --glass-rim-top: rgba(255, 255, 255, 0.22);
+  --glass-rim-bottom: rgba(255, 255, 255, 0.04);
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --glass-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 45%);
+
+  /* surfaces (cards, panels inside the solid content area) */
+  --surface: #1e212a;
+  --surface-hover: #242834;
+  --surface-border: rgba(255, 255, 255, 0.06);
+
+  --accent: #7aa7ff;
+  --accent-strong: #5b8cff;
+  --accent-text: #0b1020;
+  --accent-soft: rgba(122, 167, 255, 0.16);
+
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --info: #60a5fa;
+
+  --console-bg: #0f1116;
+  --console-text: #d7dbe5;
+  --focus-ring: 0 0 0 2px rgba(122, 167, 255, 0.55);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #eef1f7;
+  --bg-raised: #f7f8fb;
+  --bg-sunken: #e4e8f0;
+  --text: #161a24;
+  --text-muted: #4d5568;
+  --text-faint: #7d8597;
+  --border: rgba(20, 30, 60, 0.1);
+
+  --glass-tint: rgba(255, 255, 255, 0.55);
+  --glass-tint-strong: rgba(255, 255, 255, 0.7);
+  --glass-tint-hover: rgba(255, 255, 255, 0.82);
+  --glass-flat: #f4f6fa;
+  --glass-rim-top: rgba(255, 255, 255, 0.95);
+  --glass-rim-bottom: rgba(255, 255, 255, 0.35);
+  --glass-shadow: 0 10px 30px rgba(60, 70, 110, 0.14), 0 1px 2px rgba(60, 70, 110, 0.12);
+  --glass-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0) 50%);
+
+  --surface: rgba(255, 255, 255, 0.6);
+  --surface-hover: rgba(255, 255, 255, 0.78);
+  --surface-border: rgba(255, 255, 255, 0.85);
+
+  --accent: #3b6cf6;
+  --accent-strong: #2c5be0;
+  --accent-text: #ffffff;
+  --accent-soft: rgba(59, 108, 246, 0.12);
+
+  --ok: #16a34a;
+  --warn: #b7791f;
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.1);
+  --info: #2563eb;
+
+  --console-bg: rgba(250, 251, 254, 0.85);
+  --console-text: #1d2333;
+  --focus-ring: 0 0 0 2px rgba(59, 108, 246, 0.45);
+}
