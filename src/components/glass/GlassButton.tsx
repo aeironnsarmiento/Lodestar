@@ -1,5 +1,4 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { glassClasses, useEffects } from "./effects";
 
 interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "primary" | "danger" | "ghost";
@@ -9,6 +8,7 @@ interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   iconOnly?: boolean;
 }
 
+/** A pill button that sits on a glass pane: quiet rim, faint fill, stronger on hover. */
 export function GlassButton({
   variant = "default",
   size = "md",
@@ -19,10 +19,8 @@ export function GlassButton({
   type = "button",
   ...rest
 }: GlassButtonProps) {
-  const effects = useEffects();
   const classes = [
     "gbtn",
-    variant !== "ghost" ? glassClasses(effects, "control") : "",
     variant !== "default" ? variant : "",
     size === "sm" ? "sm" : "",
     iconOnly ? "icon-only" : "",

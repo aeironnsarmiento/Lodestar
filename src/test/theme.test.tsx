@@ -1,12 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
-import { GlassButton } from "../components/glass/GlassButton";
 import { GlassPanel } from "../components/glass/GlassPanel";
-import { GlassPill } from "../components/glass/GlassPill";
 import { EffectsContext } from "../components/glass/effects";
-import { supportsRefraction } from "../lib/theme";
+import { applyGlassOpacity, applyWallpaper, readStoredGlassOpacity, readStoredWallpaper } from "../lib/theme";
 
 describe("theme", () => {
   it("toggles the root theme attribute and keeps the choice after a reload", async () => {
@@ -24,55 +22,44 @@ describe("theme", () => {
     expect(document.documentElement.dataset.theme).toBe("light");
     expect(screen.getByRole("button", { name: /switch to dark mode/i })).toBeInTheDocument();
   });
+
+  it("remembers the wallpaper and glass opacity", () => {
+    applyWallpaper("orchid");
+    expect(document.documentElement.dataset.wallpaper).toBe("orchid");
+    expect(readStoredWallpaper()).toBe("orchid");
+    applyWallpaper("auto");
+    expect(document.documentElement.dataset.wallpaper).toBeUndefined();
+
+    applyGlassOpacity(2);
+    expect(readStoredGlassOpacity()).toBe(0.85);
+    expect(document.documentElement.style.getPropertyValue("--glass-alpha-pane")).toBe("0.85");
+  });
 });
 
-describe("glass effects", () => {
-  it("renders without blur and refraction classes when Reduce effects is on", () => {
+describe("glass blur budget", () => {
+  it("blurs only the outer surface; nested surfaces are flat panes", () => {
     render(
-      <EffectsContext.Provider value={{ reduceEffects: true, refraction: true }}>
-        <GlassPanel data-testid="panel" />
-        <GlassButton>Launch</GlassButton>
-        <GlassPill data-testid="pill">Online</GlassPill>
-      </EffectsContext.Provider>,
+      <GlassPanel data-testid="frame">
+        <GlassPanel data-testid="pane">
+          <GlassPanel layer data-testid="popover" />
+        </GlassPanel>
+      </GlassPanel>,
     );
-    for (const el of [screen.getByTestId("panel"), screen.getByRole("button"), screen.getByTestId("pill")]) {
-      expect(el).not.toHaveClass("glass-blur");
-      expect(el).not.toHaveClass("glass-refract");
-      expect(el).toHaveClass("glass-flat");
-    }
+    expect(screen.getByTestId("frame")).toHaveAttribute("data-blur", "on");
+    expect(screen.getByTestId("pane")).toHaveAttribute("data-blur", "off");
+    // A new layer (dialog, popover) blurs again even when nested.
+    expect(screen.getByTestId("popover")).toHaveAttribute("data-blur", "on");
   });
 
-  it("applies refraction to controls only when the feature check passes", () => {
-    const { rerender } = render(
-      <EffectsContext.Provider value={{ reduceEffects: false, refraction: true }}>
-        <GlassButton>Launch</GlassButton>
-        <GlassPanel data-testid="panel" />
+  it("turns every blur off when Reduce effects is on", () => {
+    render(
+      <EffectsContext.Provider value={{ reduceEffects: true }}>
+        <GlassPanel data-testid="frame">
+          <GlassPanel layer data-testid="popover" />
+        </GlassPanel>
       </EffectsContext.Provider>,
     );
-    expect(screen.getByRole("button")).toHaveClass("glass-refract", "glass-blur");
-    // Large chrome never refracts.
-    expect(screen.getByTestId("panel")).not.toHaveClass("glass-refract");
-
-    rerender(
-      <EffectsContext.Provider value={{ reduceEffects: false, refraction: false }}>
-        <GlassButton>Launch</GlassButton>
-        <GlassPanel data-testid="panel" />
-      </EffectsContext.Provider>,
-    );
-    expect(screen.getByRole("button")).not.toHaveClass("glass-refract");
-    expect(screen.getByRole("button")).toHaveClass("glass-blur");
-  });
-
-  it("fails the refraction feature check outside Chromium", () => {
-    expect(supportsRefraction()).toBe(false);
-    vi.stubGlobal("CSS", { supports: () => true });
-    const ua = vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 Firefox/140.0");
-    expect(supportsRefraction()).toBe(false);
-    ua.mockReturnValue("Mozilla/5.0 AppleWebKit/537.36 Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0");
-    expect(supportsRefraction()).toBe(true);
-    vi.stubGlobal("CSS", { supports: () => false });
-    expect(supportsRefraction()).toBe(false);
-    vi.unstubAllGlobals();
-    ua.mockRestore();
+    expect(screen.getByTestId("frame")).toHaveAttribute("data-blur", "off");
+    expect(screen.getByTestId("popover")).toHaveAttribute("data-blur", "off");
   });
 });

@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Glasscraft</title>
     <script>
-      // Apply the remembered theme before first paint so the window never flashes the wrong one.
+      // Apply the remembered appearance before first paint so the window never flashes the wrong one.
       try {
+        var r = document.documentElement;
         var t = localStorage.getItem("glasscraft.theme");
-        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
-        if (localStorage.getItem("glasscraft.reduceEffects") === "1") document.documentElement.dataset.effects = "reduced";
+        if (t === "light" || t === "dark") r.dataset.theme = t;
+        if (localStorage.getItem("glasscraft.reduceEffects") === "1") r.dataset.effects = "reduced";
+        var w = localStorage.getItem("glasscraft.wallpaper");
+        if (w && w !== "auto") r.dataset.wallpaper = w;
+        var o = Number(localStorage.getItem("glasscraft.glassOpacity"));
+        if (o >= 0.2 && o <= 0.85) {
+          r.style.setProperty("--glass-alpha-frame", String(o));
+          r.style.setProperty("--glass-alpha-pane", String(o));
+        }
       } catch (e) {}
     </script>
   </head>

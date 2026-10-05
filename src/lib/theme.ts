@@ -2,6 +2,8 @@ export type Theme = "light" | "dark";
 
 const THEME_KEY = "glasscraft.theme";
 const EFFECTS_KEY = "glasscraft.reduceEffects";
+const WALLPAPER_KEY = "glasscraft.wallpaper";
+const OPACITY_KEY = "glasscraft.glassOpacity";
 
 function storage(): Storage | null {
   try {
@@ -37,12 +39,35 @@ export function applyReduceEffects(reduce: boolean): void {
   storage()?.setItem(EFFECTS_KEY, reduce ? "1" : "0");
 }
 
-/**
- * SVG refraction needs `backdrop-filter: url(...)`, which only Chromium (WebView2)
- * renders. Anything else falls back to plain blur.
- */
-export function supportsRefraction(): boolean {
-  if (typeof CSS === "undefined" || typeof CSS.supports !== "function") return false;
-  if (!CSS.supports("backdrop-filter", "blur(1px)")) return false;
-  return /\bChrome\/\d+/.test(navigator.userAgent);
+/** "auto" follows the theme: Aurora when dark, Frost when light. */
+export const WALLPAPERS = ["auto", "aurora", "orchid", "dune", "graphite", "frost"] as const;
+export type Wallpaper = (typeof WALLPAPERS)[number];
+
+export function readStoredWallpaper(): Wallpaper {
+  const w = storage()?.getItem(WALLPAPER_KEY);
+  return (WALLPAPERS as readonly string[]).includes(w ?? "") ? (w as Wallpaper) : "auto";
+}
+
+export function applyWallpaper(wallpaper: Wallpaper): void {
+  if (wallpaper === "auto") delete document.documentElement.dataset.wallpaper;
+  else document.documentElement.dataset.wallpaper = wallpaper;
+  storage()?.setItem(WALLPAPER_KEY, wallpaper);
+}
+
+export const GLASS_OPACITY_MIN = 0.2;
+export const GLASS_OPACITY_MAX = 0.85;
+export const GLASS_OPACITY_DEFAULT = 0.55;
+
+export function readStoredGlassOpacity(): number {
+  const n = Number(storage()?.getItem(OPACITY_KEY));
+  return Number.isFinite(n) && n >= GLASS_OPACITY_MIN && n <= GLASS_OPACITY_MAX ? n : GLASS_OPACITY_DEFAULT;
+}
+
+/** How see-through the frame and its panes are. */
+export function applyGlassOpacity(opacity: number): void {
+  const value = Math.min(GLASS_OPACITY_MAX, Math.max(GLASS_OPACITY_MIN, opacity));
+  const root = document.documentElement.style;
+  root.setProperty("--glass-alpha-frame", value.toFixed(2));
+  root.setProperty("--glass-alpha-pane", value.toFixed(2));
+  storage()?.setItem(OPACITY_KEY, value.toFixed(2));
 }

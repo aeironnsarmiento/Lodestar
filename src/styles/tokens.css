@@ -1,116 +1,127 @@
 /*
- * Design tokens. Two themes:
- *  - dark: a solid, readable app; glass only on chrome (sidebar, header, floating controls)
- *  - light: milky white glass with dark text over a soft pastel layer
+ * Design tokens, shared with the aeirMBP liquid-glass desktop: one blurred glass
+ * frame floating over a wallpaper, with flat translucent panes inside it.
  */
 
 :root {
-  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
+  --font-sans: "Geist Variable", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "Cascadia Mono", Consolas, monospace;
 
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  /* --- Wallpaper ----------------------------------------------------------- */
+  --bg-image: url("../assets/backgrounds/aurora.svg");
+
+  /* --- Glass material ------------------------------------------------------ */
+  --glass-alpha-frame: 0.55;
+  --glass-alpha-pane: 0.55;
+  --glass-blur: 20px;
+  --glass-saturate: 175%;
+
+  --glass-surface: rgb(var(--glass-tint) / var(--glass-alpha-frame));
+  --glass-surface-pane: rgb(var(--glass-tint) / var(--glass-alpha-pane));
+  --glass-surface-strong: rgb(var(--glass-tint) / clamp(0, calc(var(--glass-alpha-pane) + 0.18), 1));
+  --glass-surface-weak: rgb(var(--glass-tint) / clamp(0, calc(var(--glass-alpha-pane) - 0.22), 1));
+  --glass-surface-solid: rgb(var(--glass-tint) / clamp(0, calc(var(--glass-alpha-pane) + 0.34), 1));
+
+  /* --- Geometry ------------------------------------------------------------ */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 30px;
   --radius-pill: 999px;
 
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
+  --gap-xs: 6px;
+  --gap-sm: 10px;
+  --gap-md: 16px;
+  --gap-lg: 24px;
+  --gap-xl: 36px;
 
-  --blur-chrome: 28px;
-  --blur-control: 14px;
-  --saturate: 180%;
+  --shell-pad: 16px;
+  --sidebar-w: 232px;
+  --topbar-h: 64px;
 
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --dur: 160ms;
-
-  --sidebar-width: 224px;
+  /* --- Motion -------------------------------------------------------------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 130ms;
+  --dur: 240ms;
+  --dur-slow: 420ms;
 }
+
+/* --- Dark (default) -------------------------------------------------------- */
 
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --bg-base: #0a1424;
+  --glass-tint: 22 27 38;
 
-  --bg: #16181f;
-  --bg-raised: #1d2029;
-  --bg-sunken: #12141a;
-  --text: #eef0f6;
-  --text-muted: #a3a9b8;
-  --text-faint: #6f7586;
-  --border: rgba(255, 255, 255, 0.08);
+  --glass-border: rgb(255 255 255 / 0.14);
+  --glass-border-quiet: rgb(255 255 255 / 0.12);
+  --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.16), inset 0 -1px 0 rgb(0 0 0 / 0.24);
+  --glass-shadow: 0 12px 40px rgb(0 0 0 / 0.5), 0 2px 10px rgb(0 0 0 / 0.32);
+  --glass-shadow-lift: 0 26px 70px rgb(0 0 0 / 0.62), 0 6px 18px rgb(0 0 0 / 0.4);
 
-  /* glass */
-  --glass-tint: rgba(255, 255, 255, 0.06);
-  --glass-tint-strong: rgba(255, 255, 255, 0.1);
-  --glass-tint-hover: rgba(255, 255, 255, 0.14);
-  --glass-flat: #23262f;
-  --glass-rim-top: rgba(255, 255, 255, 0.22);
-  --glass-rim-bottom: rgba(255, 255, 255, 0.04);
-  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.4);
-  --glass-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 45%);
+  --ink: oklch(0.96 0.005 260);
+  --ink-muted: oklch(0.78 0.015 260);
+  --ink-faint: oklch(0.62 0.02 260);
+  --ink-invert: oklch(0.2 0.02 260);
 
-  /* surfaces (cards, panels inside the solid content area) */
-  --surface: #1e212a;
-  --surface-hover: #242834;
-  --surface-border: rgba(255, 255, 255, 0.06);
+  --accent: oklch(0.78 0.13 205);
+  --accent-soft: oklch(0.78 0.13 205 / 0.18);
+  --live: oklch(0.75 0.19 150);
+  --live-soft: oklch(0.75 0.19 150 / 0.22);
+  --warn: oklch(0.83 0.14 80);
+  --danger: oklch(0.72 0.17 22);
+  --danger-soft: oklch(0.72 0.17 22 / 0.16);
 
-  --accent: #7aa7ff;
-  --accent-strong: #5b8cff;
-  --accent-text: #0b1020;
-  --accent-soft: rgba(122, 167, 255, 0.16);
-
-  --ok: #4ade80;
-  --warn: #fbbf24;
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.14);
-  --info: #60a5fa;
-
-  --console-bg: #0f1116;
-  --console-text: #d7dbe5;
-  --focus-ring: 0 0 0 2px rgba(122, 167, 255, 0.55);
+  --scrim: rgb(4 8 16 / 0.42);
 }
+
+/* --- Light ----------------------------------------------------------------- */
 
 :root[data-theme="light"] {
   color-scheme: light;
+  --bg-image: url("../assets/backgrounds/frost.svg");
+  --bg-base: #e6eef7;
+  --glass-tint: 255 255 255;
 
-  --bg: #eef1f7;
-  --bg-raised: #f7f8fb;
-  --bg-sunken: #e4e8f0;
-  --text: #161a24;
-  --text-muted: #4d5568;
-  --text-faint: #7d8597;
-  --border: rgba(20, 30, 60, 0.1);
+  --glass-border: rgb(255 255 255 / 0.5);
+  --glass-border-quiet: rgb(15 23 42 / 0.14);
+  --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.6), inset 0 -1px 0 rgb(0 0 0 / 0.04);
+  --glass-shadow: 0 10px 34px rgb(15 23 42 / 0.16), 0 2px 8px rgb(15 23 42 / 0.08);
+  --glass-shadow-lift: 0 20px 60px rgb(15 23 42 / 0.24), 0 4px 14px rgb(15 23 42 / 0.12);
 
-  --glass-tint: rgba(255, 255, 255, 0.55);
-  --glass-tint-strong: rgba(255, 255, 255, 0.7);
-  --glass-tint-hover: rgba(255, 255, 255, 0.82);
-  --glass-flat: #f4f6fa;
-  --glass-rim-top: rgba(255, 255, 255, 0.95);
-  --glass-rim-bottom: rgba(255, 255, 255, 0.35);
-  --glass-shadow: 0 10px 30px rgba(60, 70, 110, 0.14), 0 1px 2px rgba(60, 70, 110, 0.12);
-  --glass-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0) 50%);
+  --ink: oklch(0.24 0.02 260);
+  --ink-muted: oklch(0.46 0.02 260);
+  --ink-faint: oklch(0.62 0.02 260);
+  --ink-invert: oklch(0.98 0 0);
 
-  --surface: rgba(255, 255, 255, 0.6);
-  --surface-hover: rgba(255, 255, 255, 0.78);
-  --surface-border: rgba(255, 255, 255, 0.85);
+  --accent: oklch(0.6 0.14 225);
+  --accent-soft: oklch(0.6 0.14 225 / 0.16);
+  --live: oklch(0.6 0.17 148);
+  --live-soft: oklch(0.6 0.17 148 / 0.18);
+  --warn: oklch(0.66 0.15 70);
+  --danger: oklch(0.57 0.2 25);
+  --danger-soft: oklch(0.57 0.2 25 / 0.12);
 
-  --accent: #3b6cf6;
-  --accent-strong: #2c5be0;
-  --accent-text: #ffffff;
-  --accent-soft: rgba(59, 108, 246, 0.12);
+  --scrim: rgb(200 210 228 / 0.4);
+}
 
-  --ok: #16a34a;
-  --warn: #b7791f;
-  --danger: #dc2626;
-  --danger-soft: rgba(220, 38, 38, 0.1);
-  --info: #2563eb;
+/* --- Wallpaper choice (Settings → Appearance); none set = follow the theme -- */
 
-  --console-bg: rgba(250, 251, 254, 0.85);
-  --console-text: #1d2333;
-  --focus-ring: 0 0 0 2px rgba(59, 108, 246, 0.45);
+:root[data-wallpaper="aurora"] {
+  --bg-image: url("../assets/backgrounds/aurora.svg");
+}
+:root[data-wallpaper="orchid"] {
+  --bg-image: url("../assets/backgrounds/orchid.svg");
+}
+:root[data-wallpaper="dune"] {
+  --bg-image: url("../assets/backgrounds/dune.svg");
+}
+:root[data-wallpaper="graphite"] {
+  --bg-image: url("../assets/backgrounds/graphite.svg");
+}
+:root[data-wallpaper="frost"] {
+  --bg-image: url("../assets/backgrounds/frost.svg");
 }

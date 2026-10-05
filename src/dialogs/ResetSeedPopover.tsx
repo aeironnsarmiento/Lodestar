@@ -79,7 +79,7 @@ export function ResetSeedPopover({ onClose, onReset }: ResetSeedPopoverProps) {
 
   return (
     <div ref={ref} onClick={(e) => e.stopPropagation()}>
-      <GlassPanel className="popover" role="dialog" aria-label="Reset with a seed">
+      <GlassPanel layer tone="raised" className="popover" role="dialog" aria-label="Reset with a seed">
         <form
           className="stack"
           style={{ gap: 10 }}
