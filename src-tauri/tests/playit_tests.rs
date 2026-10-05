@@ -131,7 +131,7 @@ async fn a_rejected_claim_returns_to_not_set_up_with_a_message() {
 async fn a_new_port_gets_a_tunnel_created_then_connected() {
     let script = Script::new(&[
         ("/v1/agents/rundata", &["rundata_empty", "rundata_pending", "rundata_no_address", "rundata_connected"]),
-        ("/v1/tunnels/create", &["tunnels_create_ok"]),
+        ("/tunnels/create", &["tunnels_create_ok"]),
     ]);
     let server = playit_server(script);
     let dir = tempfile::tempdir().unwrap();
@@ -144,12 +144,17 @@ async fn a_new_port_gets_a_tunnel_created_then_connected() {
     assert_eq!(mgr.public_address(25565).as_deref(), Some("glass-runs.gl.joinmc.link"));
     assert_eq!(mgr.status().tunnels[0].state, TunnelState::Connected);
 
-    let creates: Vec<_> = server.requests().into_iter().filter(|r| r.path == "/v1/tunnels/create").collect();
+    let creates: Vec<_> = server.requests().into_iter().filter(|r| r.path == "/tunnels/create").collect();
     assert_eq!(creates.len(), 1);
     let body = creates[0].json();
-    assert_eq!(body["ports"]["details"], "minecraft-java");
+    // The shape the live API accepts (checked against api.playit.gg on 2026-10-05).
+    assert_eq!(body["tunnel_type"], "minecraft-java");
+    assert_eq!(body["port_type"], "tcp");
+    assert_eq!(body["port_count"], 1);
+    assert_eq!(body["origin"]["type"], "agent");
     assert_eq!(body["origin"]["data"]["agent_id"], "5d6b2f40-9b0c-4c63-9f3c-2a7d1e9c8b11");
-    assert_eq!(body["origin"]["data"]["config"]["fields"][1]["value"], "25565");
+    assert_eq!(body["origin"]["data"]["local_ip"], "127.0.0.1");
+    assert_eq!(body["origin"]["data"]["local_port"], 25565);
     assert_eq!(creates[0].header("authorization"), Some(format!("Agent-Key {SECRET}").as_str()));
     // The tunnel id is remembered for next time.
     assert!(std::fs::read_to_string(dir.path().join("tunnels.json")).unwrap().contains("8a1c3e55"));
@@ -157,21 +162,21 @@ async fn a_new_port_gets_a_tunnel_created_then_connected() {
 
 #[tokio::test]
 async fn an_existing_tunnel_for_the_port_is_reused() {
-    let script = Script::new(&[("/v1/agents/rundata", &["rundata_connected"]), ("/v1/tunnels/create", &["tunnels_create_ok"])]);
+    let script = Script::new(&[("/v1/agents/rundata", &["rundata_connected"]), ("/tunnels/create", &["tunnels_create_ok"])]);
     let server = playit_server(script);
     let dir = tempfile::tempdir().unwrap();
     linked(dir.path());
     let mgr = manager(&server, dir.path(), fake_agent());
     mgr.ensure_tunnel(25565);
     eventually(|| mgr.public_address(25565).is_some()).await;
-    assert_eq!(server.count("/v1/tunnels/create"), 0);
+    assert_eq!(server.count("/tunnels/create"), 0);
 }
 
 #[tokio::test]
 async fn two_instances_on_one_port_share_one_tunnel() {
     let script = Script::new(&[
         ("/v1/agents/rundata", &["rundata_empty", "rundata_no_address", "rundata_connected"]),
-        ("/v1/tunnels/create", &["tunnels_create_ok"]),
+        ("/tunnels/create", &["tunnels_create_ok"]),
     ]);
     let server = playit_server(script);
     let dir = tempfile::tempdir().unwrap();
@@ -182,13 +187,13 @@ async fn two_instances_on_one_port_share_one_tunnel() {
     eventually(|| mgr.public_address(25565).is_some()).await;
     mgr.ensure_tunnel(25565);
     tokio::time::sleep(Duration::from_millis(100)).await;
-    assert_eq!(server.count("/v1/tunnels/create"), 1);
+    assert_eq!(server.count("/tunnels/create"), 1);
     assert_eq!(mgr.status().tunnels.len(), 1);
 }
 
 #[tokio::test]
 async fn a_tunnel_limit_sets_limit_reached_with_a_clear_message() {
-    let script = Script::new(&[("/v1/agents/rundata", &["rundata_empty"]), ("/v1/tunnels/create", &["tunnels_create_limit"])]);
+    let script = Script::new(&[("/v1/agents/rundata", &["rundata_empty"]), ("/tunnels/create", &["tunnels_create_limit"])]);
     let server = playit_server(script);
     let dir = tempfile::tempdir().unwrap();
     linked(dir.path());

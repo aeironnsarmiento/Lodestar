@@ -124,6 +124,11 @@ export function PlayitPage() {
                         {t.message ? ` — ${t.message}` : ""}
                       </div>
                     </div>
+                    {t.state !== "pending" && (
+                      <GlassButton size="sm" icon={<Icon name="restart" size={14} />} onClick={() => run(() => api.playitRetryTunnel(t.port))}>
+                        Retry
+                      </GlassButton>
+                    )}
                   </div>
                 );
               })

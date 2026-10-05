@@ -60,4 +60,21 @@ describe("playit.gg page", () => {
     expect(screen.getByText(/limit reached — your playit\.gg account has no free tunnel left/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /re-link account/i })).toBeInTheDocument();
   });
+
+  it("retries a failed tunnel", async () => {
+    const user = userEvent.setup();
+    act(() =>
+      setState({
+        playit: {
+          state: "linked",
+          claimUrl: null,
+          message: null,
+          tunnels: [{ port: 25565, state: "error", address: null, message: "playit.gg could not create the tunnel." }],
+        },
+      }),
+    );
+    render(<PlayitPage />);
+    await user.click(screen.getByRole("button", { name: /retry/i }));
+    expect(invoke).toHaveBeenCalledWith("playit_retry_tunnel", { port: 25565 });
+  });
 });

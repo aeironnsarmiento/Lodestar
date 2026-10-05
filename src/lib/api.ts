@@ -182,6 +182,7 @@ export const api = {
   playitSetup: () => invoke<string>("playit_setup"),
   playitCancel: () => invoke<void>("playit_cancel"),
   playitRelink: () => invoke<string>("playit_relink"),
+  playitRetryTunnel: (port: number) => invoke<void>("playit_retry_tunnel", { port }),
 
   getSettings: () => invoke<AppSettings>("get_settings"),
   setSettings: (settings: AppSettings) => invoke<AppSettings>("set_settings", { settings }),

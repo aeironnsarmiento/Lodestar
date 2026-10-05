@@ -82,6 +82,7 @@ pub fn run() {
             commands::playit::playit_setup,
             commands::playit::playit_cancel,
             commands::playit::playit_relink,
+            commands::playit::playit_retry_tunnel,
             commands::settings::get_settings,
             commands::settings::set_settings,
             commands::settings::accept_eula,

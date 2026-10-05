@@ -155,25 +155,29 @@ impl PlayitApi {
     }
 
     /// Creates a Minecraft Java tunnel to `127.0.0.1:<port>` on this agent.
+    ///
+    /// Uses `/tunnels/create`: the live API rejects the `/v1/tunnels/create` body
+    /// published in the agent's client (v1.0.10) with "failed to parse body".
     pub async fn create_tunnel(&self, secret: &str, agent_id: &str, port: u16, name: &str) -> Result<std::result::Result<String, ApiFailure>> {
         #[derive(Deserialize)]
         struct Id {
             id: String,
         }
         let body = json!({
-            "ports": { "type": "tunnel-type", "details": "minecraft-java" },
+            "name": name,
+            "tunnel_type": "minecraft-java",
+            "port_type": "tcp",
+            "port_count": 1,
             "origin": { "type": "agent", "data": {
                 "agent_id": agent_id,
-                "config": { "fields": [
-                    { "name": "local_ip", "value": "127.0.0.1" },
-                    { "name": "local_port", "value": port.to_string() },
-                ]},
+                "local_ip": "127.0.0.1",
+                "local_port": port,
             }},
             "enabled": true,
             "alloc": null,
-            "name": name,
             "firewall_id": null,
+            "proxy_protocol": null,
         });
-        Ok(self.call::<Id>("/v1/tunnels/create", Some(secret), body).await?.map(|i| i.id))
+        Ok(self.call::<Id>("/tunnels/create", Some(secret), body).await?.map(|i| i.id))
     }
 }

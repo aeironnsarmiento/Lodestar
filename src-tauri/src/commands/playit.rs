@@ -27,3 +27,10 @@ pub async fn playit_relink(app: AppState<'_>, handle: tauri::AppHandle) -> CmdRe
     let _ = handle.opener().open_url(&url, None::<&str>);
     Ok(url)
 }
+
+/// Tries a failed tunnel again.
+#[tauri::command]
+pub async fn playit_retry_tunnel(app: AppState<'_>, port: u16) -> CmdResult<()> {
+    app.playit.ensure_tunnel(port);
+    Ok(())
+}

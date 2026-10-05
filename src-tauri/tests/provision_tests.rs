@@ -34,6 +34,11 @@ fn fabric(name: &str, version: &str) -> NewInstance {
     }
 }
 
+/// A port nothing listens on, so tests never collide with a real server on 25565.
+fn free_port() -> u16 {
+    std::net::TcpListener::bind("127.0.0.1:0").unwrap().local_addr().unwrap().port()
+}
+
 async fn wait_provisioned(app: &App, id: &str) -> Instance {
     for _ in 0..400 {
         let inst = app.store.get(id).unwrap();
@@ -117,6 +122,7 @@ async fn launching_after_eula_writes_eula_and_properties_before_spawning() {
     inst.max_players = 4;
     inst.motd = "Speedrun night".into();
     inst.hardcore = true;
+    inst.port = free_port();
     let inst = app.update_instance(inst).unwrap();
 
     app.accept_eula().unwrap();
@@ -149,6 +155,7 @@ async fn deleting_a_running_instance_is_refused_through_the_app() {
     app.accept_eula().unwrap();
     let inst = app.create_and_provision(fabric("Busy", "26.3")).unwrap();
     wait_provisioned(&app, &inst.id).await;
+    app.store.modify(&inst.id, |i| i.port = free_port()).unwrap();
     app.launch(&inst.id).await.unwrap();
     app.supervisor.wait_for(&inst.id, WAIT, |s| s == ServerState::Online).await.unwrap();
 
