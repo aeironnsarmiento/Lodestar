@@ -23,7 +23,13 @@ use crate::lifecycle::keep_awake::KeepAwake;
 use crate::lifecycle::scheduler::ScheduleState;
 use crate::lifecycle::{Clock, SystemClock};
 use crate::playit::{PlayitConfig, PlayitManager};
-use crate::supervisor::{Supervisor, DEFAULT_STOP_TIMEOUT};
+use crate::supervisor::{ServerState, Supervisor, DEFAULT_STOP_TIMEOUT};
+use crate::worlds::properties::remove_from_player_file;
+
+/// Names in `a` that are not in `b`, ignoring case.
+fn missing_from(a: &[String], b: &[String]) -> Vec<String> {
+    a.iter().filter(|n| !b.iter().any(|m| m.eq_ignore_ascii_case(n))).cloned().collect()
+}
 
 /// Where the app's data lives and which services it talks to.
 #[derive(Clone)]
@@ -165,9 +171,44 @@ impl App {
     }
 
     pub fn update_instance(&self, inst: Instance) -> Result<Instance> {
+        let before = self.store.get(&inst.id)?;
         let inst = self.store.update(inst)?;
+        self.sync_player_lists(&before, &inst);
         self.notify_instances_changed();
         Ok(inst)
+    }
+
+    /// Applies whitelist and operator edits. Online, they go through the console right
+    /// away; otherwise removals are made in the server's list files and additions wait
+    /// for the next start (see `on_state_change`).
+    fn sync_player_lists(&self, before: &Instance, after: &Instance) {
+        let online = self.supervisor.state(&after.id) == ServerState::Online;
+        let server_dir = self.paths().server_dir(&after.id);
+        let lists = [
+            (&before.whitelist, &after.whitelist, "whitelist add", "whitelist remove", "whitelist.json"),
+            (&before.operators, &after.operators, "op", "deop", "ops.json"),
+        ];
+        for (old, new, add, remove, file) in lists {
+            // The host stays an operator even when dropped from the extra list.
+            let removed: Vec<String> = missing_from(old, new)
+                .into_iter()
+                .filter(|n| file != "ops.json" || !n.eq_ignore_ascii_case(&after.op_name))
+                .collect();
+            if online {
+                for name in &removed {
+                    let _ = self.supervisor.send_command(&after.id, &format!("{remove} {name}"));
+                }
+                for name in missing_from(new, old) {
+                    let _ = self.supervisor.send_command(&after.id, &format!("{add} {name}"));
+                }
+            } else if let Err(e) = remove_from_player_file(&server_dir.join(file), &removed) {
+                eprintln!("lodestar: could not update {file}: {e:#}");
+            }
+        }
+        if online && before.properties.white_list != after.properties.white_list {
+            let toggle = if after.properties.white_list { "whitelist on" } else { "whitelist off" };
+            let _ = self.supervisor.send_command(&after.id, toggle);
+        }
     }
 
     pub fn delete_instance(&self, id: &str) -> Result<()> {

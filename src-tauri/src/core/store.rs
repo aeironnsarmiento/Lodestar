@@ -12,7 +12,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use super::instance::{slugify, Instance, NewInstance, Provision};
+use super::instance::{slugify, Difficulty, Instance, NewInstance, Provision};
 use super::paths::Paths;
 use super::settings::AppSettings;
 
@@ -163,7 +163,8 @@ impl Store {
             mc_version: new.mc_version.trim().to_string(),
             initial_seed: new.seed.map(|s| s.trim().to_string()).filter(|s| !s.is_empty()),
             game_mode: new.game_mode,
-            difficulty: new.difficulty,
+            difficulty: if new.hardcore { Difficulty::Hard } else { new.difficulty },
+            hardcore: new.hardcore,
             max_players: new.max_players.unwrap_or(defaults.max_players).clamp(1, 1000),
             port,
             created_at: chrono::Local::now().to_rfc3339(),
@@ -186,6 +187,7 @@ impl Store {
         if inst.name.trim().is_empty() {
             bail!("Give the server a name.");
         }
+        inst.normalize();
         write_json_atomic(&self.paths.instance_file(&inst.id), &inst)?;
         inner.instances.insert(inst.id.clone(), inst.clone());
         Ok(inst)

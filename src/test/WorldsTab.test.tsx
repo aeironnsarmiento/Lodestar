@@ -69,12 +69,19 @@ describe("Reset World button", () => {
       />,
     );
     await user.click(screen.getByRole("button", { name: /^reset$/i }));
-    expect(onReset).toHaveBeenLastCalledWith(null);
+    expect(onReset).toHaveBeenLastCalledWith(null, false);
 
-    await user.click(screen.getByRole("button", { name: /reset with a seed/i }));
-    const pop = screen.getByRole("dialog", { name: /reset with a seed/i });
+    await user.click(screen.getByRole("button", { name: /new world options/i }));
+    let pop = screen.getByRole("dialog", { name: /new world options/i });
     await user.type(within(pop).getByPlaceholderText("Random"), "speedrun123{Enter}");
-    expect(onReset).toHaveBeenLastCalledWith("speedrun123");
+    expect(onReset).toHaveBeenLastCalledWith("speedrun123", false);
+
+    // The next world can be made hardcore from the same popover.
+    await user.click(screen.getByRole("button", { name: /new world options/i }));
+    pop = screen.getByRole("dialog", { name: /new world options/i });
+    await user.click(within(pop).getByRole("switch", { name: "Hardcore" }));
+    await user.click(within(pop).getByRole("button", { name: /reset world/i }));
+    expect(onReset).toHaveBeenLastCalledWith(null, true);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(onOpen).not.toHaveBeenCalled();
   });

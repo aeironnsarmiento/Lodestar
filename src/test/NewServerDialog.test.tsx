@@ -74,9 +74,25 @@ describe("New server dialog", () => {
         seed: "speedrun123",
         gameMode: "survival",
         difficulty: "hard",
+        hardcore: false,
         maxPlayers: 4,
       },
     });
     await waitFor(() => expect(onCreated).toHaveBeenCalled());
+  });
+
+  it("creates a hardcore server, which locks difficulty to Hard", async () => {
+    const user = userEvent.setup();
+    render(<NewServerDialog onClose={() => {}} onCreated={() => {}} />);
+    await waitFor(() => expect(optionIds()).toContain("26.3"));
+
+    await user.click(screen.getByRole("switch", { name: "Hardcore" }));
+    expect(screen.getByLabelText("Difficulty")).toBeDisabled();
+    expect(screen.getByLabelText("Difficulty")).toHaveValue("hard");
+    await user.click(screen.getByRole("button", { name: /create server/i }));
+
+    expect(invoke).toHaveBeenCalledWith("create_instance", {
+      new: expect.objectContaining({ hardcore: true, difficulty: "hard" }),
+    });
   });
 });

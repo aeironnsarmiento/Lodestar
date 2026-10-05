@@ -802,3 +802,57 @@ table.data .seed {
   color: var(--ink-muted);
   text-align: right;
 }
+
+/* ------------------------------------------------------------------ server settings */
+
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px var(--gap-md);
+  margin-bottom: 2px;
+}
+
+.panel-head .section-title {
+  margin: 0;
+}
+
+.panel-note {
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+}
+
+.player-list-editor {
+  gap: 8px;
+  padding-top: var(--gap-sm);
+}
+
+.player-list-editor > .label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-md);
+  padding: var(--gap-sm) var(--gap-sm) var(--gap-sm) var(--gap-lg);
+  border-radius: var(--radius-pill);
+  font-size: 0.84rem;
+}
+
+/* With unsaved changes it stays in view at the bottom while the settings scroll. */
+.save-bar[data-floating="true"] {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  background: var(--glass-surface-solid);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+}
+
+.dialog .toggle-row {
+  border-bottom: 0;
+  padding: 0;
+}

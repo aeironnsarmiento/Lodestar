@@ -22,6 +22,29 @@ export interface RestartSchedule {
   mode: RestartMode;
 }
 
+export type LevelType = "normal" | "flat" | "largeBiomes" | "amplified";
+
+/** server.properties keys managed by the app (besides the core ones on Instance). */
+export interface ServerProperties {
+  pvp: boolean;
+  allowNether: boolean;
+  generateStructures: boolean;
+  levelType: LevelType;
+  spawnProtection: number;
+  forceGamemode: boolean;
+  enableCommandBlock: boolean;
+  allowFlight: boolean;
+  playerIdleTimeout: number;
+  enforceSecureProfile: boolean;
+  hideOnlinePlayers: boolean;
+  whiteList: boolean;
+  enforceWhitelist: boolean;
+  syncChunkWrites: boolean;
+  entityBroadcastRangePercentage: number;
+  resourcePack: string;
+  requireResourcePack: boolean;
+}
+
 export interface Instance {
   id: string;
   name: string;
@@ -42,6 +65,9 @@ export interface Instance {
   motd: string;
   onlineMode: boolean;
   opName: string;
+  operators: string[];
+  whitelist: string[];
+  properties: ServerProperties;
   autoStart: boolean;
   restart: RestartSchedule;
   speedMods: boolean;
@@ -58,6 +84,7 @@ export interface NewInstance {
   seed?: string | null;
   gameMode: GameMode;
   difficulty: Difficulty;
+  hardcore?: boolean;
   maxPlayers?: number;
 }
 

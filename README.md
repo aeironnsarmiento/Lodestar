@@ -9,15 +9,23 @@ no batch files, no manual Java installs, no port forwarding.
 - **Isolated instances.** Vanilla, Paper, Fabric, Forge (1.17+) and NeoForge servers each
   get their own folder, settings, port and worlds. Run several at once.
 - **Guided setup.** Pick a name, type, version (snapshots optional), seed, game mode,
-  difficulty and player limit. Lodestar downloads and verifies the server files and the
-  right Java in the background, with progress on the server's card. Failed setups can be
+  difficulty, player limit and hardcore. Lodestar downloads and verifies the server files and
+  the right Java in the background, with progress on the server's card. Failed setups can be
   retried in place.
 - **Managed Java.** The Java version each Minecraft release needs is downloaded as a
   portable Eclipse Temurin runtime and shared between servers. Nothing is installed
   system-wide.
-- **Per-server settings.** Memory, port, MOTD, game mode, difficulty, hardcore, player limit,
-  view and simulation distance, online mode, and an operator name that is opped every time
-  the server comes online. Fabric servers can get Lithium and FerriteCore installed
+- **Server properties, one panel each.** General (name, MOTD, port, memory), Gameplay (game
+  mode, force game mode, difficulty, hardcore, PvP, flight, command blocks), World generation
+  (world type, structures, Nether, spawn protection), Players (limit, online mode, signed
+  chat, hidden player list, idle kick), Performance (view and simulation distance, entity
+  range, safe chunk writes) and Resource pack. Lodestar writes them to `server.properties`
+  on every start and keeps any other keys you add by hand.
+- **Whitelist and operators.** Turn the whitelist on, choose whether to kick players who are
+  not on it, and add or remove names. Operators work the same way, and your own Minecraft
+  name is opped every time the server comes online. While a server is online, list changes
+  apply straight away.
+- **Fabric speed mods.** Fabric servers can get Lithium and FerriteCore installed
   automatically.
 - **Mods and plugins.** Open a server's `mods` or `plugins` folder straight from its page.
 
@@ -39,7 +47,7 @@ no batch files, no manual Java installs, no port forwarding.
 ## Worlds
 
 - **Reset World** in one click: players are disconnected and a fresh world boots with a
-  random or chosen seed. Built for speedrun practice.
+  random or chosen seed, optionally switching hardcore on or off. Built for speedrun practice.
 - Every run gets its own world folder with its seed recorded. The last 10 are kept, so you can
   switch back to any of them from the Worlds tab.
 

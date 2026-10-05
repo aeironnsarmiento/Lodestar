@@ -5,7 +5,7 @@ import { GlassButton } from "../components/glass/GlassButton";
 import { Icon } from "../components/Icon";
 import { api, SERVER_TYPE_LABELS, type Instance, type Snapshot } from "../lib/api";
 import { stoppedSnapshot, useStore } from "../state/store";
-import { requestLaunch, requestReset, runAction } from "../state/actions";
+import { requestLaunch, resetWorld, runAction } from "../state/actions";
 import { ResetButton } from "../dialogs/ResetSeedPopover";
 import { badgeState } from "../components/ServerCard";
 import { OverviewTab } from "./server/OverviewTab";
@@ -102,7 +102,11 @@ function ServerActions({ instance, snap }: ActionsProps) {
   const canReset = ready && (s === "stopped" || s === "online" || s === "crashed");
   return (
     <div className="row">
-      <ResetButton disabled={!canReset} onReset={(seed) => requestReset(instance.id, seed)} />
+      <ResetButton
+        disabled={!canReset}
+        hardcore={instance.hardcore}
+        onReset={(seed, hardcore) => resetWorld(instance.id, seed, hardcore)}
+      />
       {(s === "stopped" || s === "crashed") && (
         <GlassButton
           variant="primary"

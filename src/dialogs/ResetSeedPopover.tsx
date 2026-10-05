@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { GlassButton } from "../components/glass/GlassButton";
-import { GlassInput } from "../components/glass/GlassInput";
+import { GlassInput, Switch } from "../components/glass/GlassInput";
 import { GlassPanel } from "../components/glass/GlassPanel";
 import { Icon } from "../components/Icon";
 
 interface ResetButtonProps {
   disabled?: boolean;
   size?: "sm" | "md";
+  /** Whether the server is hardcore now; the default for the next world. */
+  hardcore?: boolean;
   /** Resets; `seed` is null for a random seed. */
-  onReset: (seed: string | null) => void;
+  onReset: (seed: string | null, hardcore: boolean) => void;
 }
 
 /**
  * Reset World as a split button: the main part resets right away with a random seed;
- * the arrow opens a small popover with a seed field that applies to that reset only.
+ * the arrow opens a small popover with new-world options (seed, hardcore).
  */
-export function ResetButton({ disabled, size = "md", onReset }: ResetButtonProps) {
+export function ResetButton({ disabled, size = "md", hardcore = false, onReset }: ResetButtonProps) {
   const [open, setOpen] = useState(false);
   return (
     <span className="split-button">
@@ -25,7 +27,7 @@ export function ResetButton({ disabled, size = "md", onReset }: ResetButtonProps
         disabled={disabled}
         onClick={(e) => {
           e.stopPropagation();
-          onReset(null);
+          onReset(null, hardcore);
         }}
       >
         {size === "sm" ? "Reset" : "Reset World"}
@@ -33,7 +35,7 @@ export function ResetButton({ disabled, size = "md", onReset }: ResetButtonProps
       <GlassButton
         size={size}
         iconOnly
-        aria-label="Reset with a seed"
+        aria-label="New world options"
         aria-expanded={open}
         icon={<span className="chevron" aria-hidden="true" />}
         disabled={disabled}
@@ -44,10 +46,11 @@ export function ResetButton({ disabled, size = "md", onReset }: ResetButtonProps
       />
       {open && (
         <ResetSeedPopover
+          hardcore={hardcore}
           onClose={() => setOpen(false)}
-          onReset={(seed) => {
+          onReset={(seed, hc) => {
             setOpen(false);
-            onReset(seed);
+            onReset(seed, hc);
           }}
         />
       )}
@@ -56,12 +59,14 @@ export function ResetButton({ disabled, size = "md", onReset }: ResetButtonProps
 }
 
 interface ResetSeedPopoverProps {
+  hardcore: boolean;
   onClose: () => void;
-  onReset: (seed: string | null) => void;
+  onReset: (seed: string | null, hardcore: boolean) => void;
 }
 
-export function ResetSeedPopover({ onClose, onReset }: ResetSeedPopoverProps) {
+export function ResetSeedPopover({ hardcore: initialHardcore, onClose, onReset }: ResetSeedPopoverProps) {
   const [seed, setSeed] = useState("");
+  const [hardcore, setHardcore] = useState(initialHardcore);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,19 +84,23 @@ export function ResetSeedPopover({ onClose, onReset }: ResetSeedPopoverProps) {
 
   return (
     <div ref={ref} onClick={(e) => e.stopPropagation()}>
-      <GlassPanel layer tone="raised" className="popover" role="dialog" aria-label="Reset with a seed">
+      <GlassPanel layer tone="raised" className="popover" role="dialog" aria-label="New world options">
         <form
           className="stack"
           style={{ gap: 10 }}
           onSubmit={(e) => {
             e.preventDefault();
-            onReset(seed.trim() || null);
+            onReset(seed.trim() || null, hardcore);
           }}
         >
           <label className="field">
-            <span className="label">Seed for this reset</span>
+            <span className="label">Seed for the new world</span>
             <GlassInput autoFocus placeholder="Random" value={seed} onChange={(e) => setSeed(e.target.value)} />
           </label>
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <span className="label">Hardcore</span>
+            <Switch label="Hardcore" checked={hardcore} onChange={setHardcore} />
+          </div>
           <span className="faint" style={{ fontSize: 12 }}>
             Players are disconnected right away; the old world is kept.
           </span>

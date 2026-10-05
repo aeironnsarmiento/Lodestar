@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { GlassButton } from "../components/glass/GlassButton";
-import { GlassInput, GlassSelect, NumberInput } from "../components/glass/GlassInput";
+import { GlassInput, GlassSelect, NumberInput, Switch } from "../components/glass/GlassInput";
 import {
   api,
   SERVER_TYPE_LABELS,
@@ -41,6 +41,7 @@ export function NewServerDialog({ onClose, onCreated }: NewServerDialogProps) {
   const [gameMode, setGameMode] = useState<GameMode>("survival");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [maxPlayers, setMaxPlayers] = useState(10);
+  const [hardcore, setHardcore] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +78,8 @@ export function NewServerDialog({ onClose, onCreated }: NewServerDialogProps) {
         mcVersion: version,
         seed: seed.trim() || null,
         gameMode,
-        difficulty,
+        difficulty: hardcore ? "hard" : difficulty,
+        hardcore,
         maxPlayers,
       });
       onCreated(inst);
@@ -161,7 +163,12 @@ export function NewServerDialog({ onClose, onCreated }: NewServerDialogProps) {
           </div>
           <div className="field">
             <label htmlFor="ns-difficulty">Difficulty</label>
-            <GlassSelect id="ns-difficulty" value={difficulty} onChange={(e) => setDifficulty(e.target.value as Difficulty)}>
+            <GlassSelect
+              id="ns-difficulty"
+              value={hardcore ? "hard" : difficulty}
+              disabled={hardcore}
+              onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+            >
               <option value="peaceful">Peaceful</option>
               <option value="easy">Easy</option>
               <option value="normal">Normal</option>
@@ -172,6 +179,14 @@ export function NewServerDialog({ onClose, onCreated }: NewServerDialogProps) {
             <label htmlFor="ns-players">Player limit</label>
             <NumberInput id="ns-players" min={1} max={100} value={maxPlayers} onValue={setMaxPlayers} />
           </div>
+        </div>
+
+        <div className="setting-row toggle-row">
+          <div>
+            <div className="label">Hardcore</div>
+            <div className="hint">One life: dying puts players in spectator mode. Difficulty is locked to Hard.</div>
+          </div>
+          <Switch label="Hardcore" checked={hardcore} onChange={setHardcore} />
         </div>
 
         {error && (

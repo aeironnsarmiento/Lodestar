@@ -50,3 +50,40 @@ describe("Scheduled restart settings", () => {
     expect(screen.getByRole("button", { name: /save changes/i })).toBeDisabled();
   });
 });
+
+describe("Server settings panels", () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockImplementation((cmd: string, args?: any) =>
+      cmd === "update_instance" ? Promise.resolve(args.instance) : Promise.resolve(undefined),
+    );
+  });
+
+  it("edits the whitelist and server properties in their own panels and saves them", async () => {
+    const user = userEvent.setup();
+    render(<SettingsTab instance={makeInstance()} running={false} onDeleted={() => {}} />);
+
+    for (const title of ["General", "Gameplay", "World generation", "Players", "Whitelist", "Operators", "Performance", "Resource pack"]) {
+      expect(screen.getByRole("region", { name: title })).toBeInTheDocument();
+    }
+
+    const whitelist = screen.getByRole("region", { name: "Whitelist" });
+    await user.click(within(whitelist).getByRole("switch", { name: "Use the whitelist" }));
+    const add = within(whitelist).getByLabelText("Add to whitelisted players");
+    await user.type(add, "Steve{Enter}");
+    await user.type(add, "steve{Enter}");
+    await user.type(add, "not a name{Enter}");
+    expect(within(whitelist).getByText(/1–16 letters/)).toBeInTheDocument();
+    expect(within(whitelist).getAllByText("Steve")).toHaveLength(1);
+
+    await user.click(screen.getByRole("switch", { name: "PvP" }));
+    await user.selectOptions(screen.getByLabelText("World type"), "amplified");
+
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+    expect(invoke).toHaveBeenCalledWith("update_instance", {
+      instance: expect.objectContaining({
+        whitelist: ["Steve"],
+        properties: expect.objectContaining({ whiteList: true, pvp: false, levelType: "amplified" }),
+      }),
+    });
+  });
+});

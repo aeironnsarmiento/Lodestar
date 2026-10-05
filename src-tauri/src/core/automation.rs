@@ -32,10 +32,15 @@ impl App {
 
         match change.state {
             ServerState::Online => {
+                // Re-apply the app's player lists; both commands are harmless repeats.
                 if let Ok(inst) = self.store.get(&change.id) {
-                    let name = inst.op_name.trim();
-                    if !name.is_empty() {
+                    let host = inst.op_name.trim();
+                    let ops = std::iter::once(host).filter(|n| !n.is_empty()).chain(inst.operators.iter().map(String::as_str));
+                    for name in ops {
                         let _ = self.supervisor.send_command(&change.id, &format!("op {name}"));
+                    }
+                    for name in &inst.whitelist {
+                        let _ = self.supervisor.send_command(&change.id, &format!("whitelist add {name}"));
                     }
                 }
             }

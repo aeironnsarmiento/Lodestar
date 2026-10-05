@@ -116,6 +116,79 @@ pub enum Provision {
     Failed { message: String },
 }
 
+/// World generator for new worlds. Written with the legacy lower-case names, which
+/// every supported version (1.17 and later) accepts.
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum LevelType {
+    #[default]
+    Normal,
+    Flat,
+    LargeBiomes,
+    Amplified,
+}
+
+impl LevelType {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            LevelType::Normal => "default",
+            LevelType::Flat => "flat",
+            LevelType::LargeBiomes => "largebiomes",
+            LevelType::Amplified => "amplified",
+        }
+    }
+}
+
+/// The `server.properties` keys Lodestar manages beyond the core ones on [`Instance`].
+/// Defaults favour a friendly private server (no spawn protection, flight allowed so
+/// lag does not kick players, unsigned chat accepted).
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase", default)]
+pub struct ServerProperties {
+    pub pvp: bool,
+    pub allow_nether: bool,
+    pub generate_structures: bool,
+    pub level_type: LevelType,
+    pub spawn_protection: u32,
+    pub force_gamemode: bool,
+    pub enable_command_block: bool,
+    pub allow_flight: bool,
+    /// Minutes before idle players are kicked; 0 never kicks.
+    pub player_idle_timeout: u32,
+    pub enforce_secure_profile: bool,
+    pub hide_online_players: bool,
+    pub white_list: bool,
+    pub enforce_whitelist: bool,
+    pub sync_chunk_writes: bool,
+    pub entity_broadcast_range_percentage: u32,
+    pub resource_pack: String,
+    pub require_resource_pack: bool,
+}
+
+impl Default for ServerProperties {
+    fn default() -> Self {
+        Self {
+            pvp: true,
+            allow_nether: true,
+            generate_structures: true,
+            level_type: LevelType::Normal,
+            spawn_protection: 0,
+            force_gamemode: false,
+            enable_command_block: false,
+            allow_flight: true,
+            player_idle_timeout: 0,
+            enforce_secure_profile: false,
+            hide_online_players: false,
+            white_list: false,
+            enforce_whitelist: false,
+            sync_chunk_writes: false,
+            entity_broadcast_range_percentage: 100,
+            resource_pack: String::new(),
+            require_resource_pack: false,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Instance {
@@ -142,6 +215,11 @@ pub struct Instance {
     pub online_mode: bool,
     /// The host's Minecraft name; opped when the server comes online.
     pub op_name: String,
+    /// Further operators, opped when the server comes online.
+    pub operators: Vec<String>,
+    /// Players allowed when the whitelist is on; added when the server comes online.
+    pub whitelist: Vec<String>,
+    pub properties: ServerProperties,
     pub auto_start: bool,
     pub restart: RestartSchedule,
     pub speed_mods: bool,
@@ -174,6 +252,9 @@ impl Default for Instance {
             motd: "A Lodestar server".into(),
             online_mode: true,
             op_name: String::new(),
+            operators: Vec::new(),
+            whitelist: Vec::new(),
+            properties: ServerProperties::default(),
             auto_start: false,
             restart: RestartSchedule::default(),
             speed_mods: true,
@@ -195,7 +276,41 @@ pub struct NewInstance {
     pub seed: Option<String>,
     pub game_mode: GameMode,
     pub difficulty: Difficulty,
+    pub hardcore: bool,
     pub max_players: Option<u32>,
+}
+
+/// A Minecraft player name as typed: trimmed, 1–16 letters, digits or underscores.
+pub fn is_player_name(name: &str) -> bool {
+    (1..=16).contains(&name.len()) && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+}
+
+/// Trims, drops invalid names and case-insensitive duplicates, keeping the first spelling.
+pub fn clean_player_list(names: &[String]) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for name in names.iter().map(|n| n.trim()) {
+        if is_player_name(name) && !out.iter().any(|o| o.eq_ignore_ascii_case(name)) {
+            out.push(name.to_string());
+        }
+    }
+    out
+}
+
+impl Instance {
+    /// Keeps values inside the ranges Minecraft accepts.
+    pub fn normalize(&mut self) {
+        self.operators = clean_player_list(&self.operators);
+        self.whitelist = clean_player_list(&self.whitelist);
+        self.op_name = self.op_name.trim().to_string();
+        if self.hardcore {
+            self.difficulty = Difficulty::Hard;
+        }
+        let p = &mut self.properties;
+        p.spawn_protection = p.spawn_protection.min(1000);
+        p.player_idle_timeout = p.player_idle_timeout.min(1440);
+        p.entity_broadcast_range_percentage = p.entity_broadcast_range_percentage.clamp(10, 1000);
+        p.resource_pack = p.resource_pack.trim().to_string();
+    }
 }
 
 /// Lower-case, dash-separated folder name from a display name.

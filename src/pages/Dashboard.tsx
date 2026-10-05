@@ -6,7 +6,7 @@ import { Icon } from "../components/Icon";
 import { NewServerDialog } from "../dialogs/NewServerDialog";
 import { api } from "../lib/api";
 import { refreshInstances, stoppedSnapshot, useStore } from "../state/store";
-import { requestLaunch, requestReset, runAction } from "../state/actions";
+import { requestLaunch, resetWorld, runAction } from "../state/actions";
 
 interface DashboardProps {
   onOpen: (id: string) => void;
@@ -47,7 +47,7 @@ export function Dashboard({ onOpen }: DashboardProps) {
             onStop={() => runAction(inst.id, () => api.stopServer(inst.id))}
             onRestart={() => runAction(inst.id, () => api.restartServer(inst.id))}
             onKill={() => runAction(inst.id, () => api.killServer(inst.id))}
-            onReset={(seed) => requestReset(inst.id, seed)}
+            onReset={(seed, hardcore) => resetWorld(inst.id, seed, hardcore)}
             onRetry={() => runAction(inst.id, () => api.retryProvision(inst.id))}
           />
         ))}

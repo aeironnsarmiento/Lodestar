@@ -18,7 +18,7 @@ interface ServerCardProps {
   onStop: () => void;
   onRestart?: () => void;
   onKill?: () => void;
-  onReset?: (seed: string | null) => void;
+  onReset?: (seed: string | null, hardcore: boolean) => void;
   onRetry: () => void;
 }
 
@@ -140,7 +140,7 @@ export function ServerCard({
                 Launch
               </GlassButton>
             )}
-            {onReset && <ResetButton size="sm" disabled={!canReset} onReset={onReset} />}
+            {onReset && <ResetButton size="sm" disabled={!canReset} hardcore={instance.hardcore} onReset={onReset} />}
             {onRestart && s === "online" && (
               <GlassButton size="sm" iconOnly aria-label="Restart" title="Restart" icon={<Icon name="restart" size={14} />} onClick={stop(onRestart)} />
             )}

@@ -1,6 +1,6 @@
 /** Server actions shared by the dashboard cards and the server page. */
 import { api } from "../lib/api";
-import { errorMessage, getState, setState, type PendingStart } from "./store";
+import { errorMessage, getState, refreshInstances, setState, type PendingStart } from "./store";
 
 function setActionError(id: string, message: string | null) {
   setState((s) => {
@@ -48,6 +48,22 @@ export function requestLaunch(id: string): Promise<void> {
 /** Reset World: instant stop, fresh world (random seed unless one is given), start. */
 export function requestReset(id: string, seed: string | null = null): Promise<void> {
   return requestStart({ id, action: "reset", seed: seed?.trim() || null });
+}
+
+/**
+ * Reset World with new-world options. Turning hardcore on or off is saved to the
+ * server first, so the new world is generated with it.
+ */
+export async function resetWorld(id: string, seed: string | null, hardcore: boolean): Promise<void> {
+  const inst = getState().instances.find((i) => i.id === id);
+  if (inst && inst.hardcore !== hardcore) {
+    const saved = await runAction(id, async () => {
+      await api.updateInstance({ ...inst, hardcore });
+      await refreshInstances();
+    });
+    if (!saved) return;
+  }
+  await requestReset(id, seed);
 }
 
 export async function acceptEulaAndContinue(): Promise<void> {
