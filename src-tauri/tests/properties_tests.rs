@@ -60,6 +60,8 @@ fn a_hardcore_server_can_be_created() {
         .unwrap();
     assert!(inst.hardcore);
     assert_eq!(inst.difficulty, Difficulty::Hard);
+    // New servers start with 8 GB, 16 view distance and 8 simulation distance.
+    assert_eq!((inst.ram_mb, inst.view_distance, inst.simulation_distance), (8192, 16, 8));
 }
 
 #[test]
