@@ -118,7 +118,7 @@ describe("Server card buttons", () => {
     );
     const launch = screen.queryByRole("button", { name: /launch/i });
     const stop = screen.queryByRole("button", { name: /^stop$/i });
-    const reset = screen.getByRole("button", { name: /reset/i });
+    const reset = screen.getByRole("button", { name: /^reset$/i });
     expect(Boolean(launch && !(launch as HTMLButtonElement).disabled)).toBe(expected.launch);
     expect(Boolean(stop && !(stop as HTMLButtonElement).disabled)).toBe(expected.stop);
     expect(!(reset as HTMLButtonElement).disabled).toBe(expected.reset);

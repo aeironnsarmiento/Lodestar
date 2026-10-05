@@ -115,6 +115,14 @@ export interface TaskProgress {
   total: number | null;
 }
 
+export interface WorldInfo {
+  name: string;
+  seed: string | null;
+  createdAt: string | null;
+  sizeBytes: number;
+  current: boolean;
+}
+
 export const SERVER_TYPE_LABELS: Record<ServerType, string> = {
   vanilla: "Vanilla",
   paper: "Paper",
@@ -148,6 +156,9 @@ export const api = {
   sendCommand: (id: string, command: string) => invoke<void>("send_command", { id, command }),
   getConsole: (id: string) => invoke<ConsoleLine[]>("get_console", { id }),
   serverSnapshots: () => invoke<Snapshot[]>("server_snapshots"),
+  listWorlds: (id: string) => invoke<WorldInfo[]>("list_worlds", { id }),
+  resetWorld: (id: string, seed: string | null) => invoke<string>("reset_world", { id, seed }),
+  switchWorld: (id: string, name: string) => invoke<void>("switch_world", { id, name }),
   joinInfo: (id: string) => invoke<JoinInfo>("join_info", { id }),
 
   getSettings: () => invoke<AppSettings>("get_settings"),

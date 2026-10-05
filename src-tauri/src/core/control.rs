@@ -10,6 +10,7 @@ use super::app::App;
 use super::instance::{Instance, LaunchInfo, Provision};
 use crate::providers::{launch_spec, LaunchSpec};
 use crate::worlds::properties::write_server_properties;
+use crate::worlds::universe_arg;
 use crate::supervisor::console::{log_path, ConsoleLine};
 use crate::supervisor::ports::lan_ip;
 use crate::supervisor::{Snapshot, StopReason};
@@ -42,7 +43,7 @@ impl App {
     }
 
     /// Starts an instance: claims its port (Preparing), makes Java and the world
-    /// ready, then spawns the server.
+    /// ready, then spawns the server on its current world.
     pub async fn launch(self: &Arc<Self>, id: &str) -> Result<()> {
         let inst = self.store.get(id)?;
         Self::launch_info(&inst)?;
@@ -79,9 +80,10 @@ impl App {
             server_dir.join("eula.txt"),
             "# Accepted in Glasscraft: https://aka.ms/MinecraftEULA\neula=true\n",
         )?;
-        let seed = inst.initial_seed.clone().unwrap_or_default();
+        let (run, seed) = self.ensure_current_world(&inst.id)?;
         write_server_properties(&server_dir, inst, &seed)?;
-        Ok(launch_spec(&java, &server_dir, launch, inst.ram_mb, &[]))
+        let extra = ["--universe".to_string(), universe_arg(&run)];
+        Ok(launch_spec(&java, &server_dir, launch, inst.ram_mb, &extra))
     }
 
     /// Records EULA acceptance app-wide (KTD15).

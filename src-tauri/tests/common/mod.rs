@@ -220,3 +220,53 @@ pub fn jre_zip(major: u32) -> Vec<u8> {
     }
     buf.into_inner()
 }
+
+/// An `App` rooted at `root` whose servers run `fake_mc` instead of Java and whose
+/// downloads go to `server`.
+pub fn test_app(server: &TestServer, root: &std::path::Path) -> std::sync::Arc<glasscraft_lib::core::app::App> {
+    test_app_with(server, root, |_| {})
+}
+
+pub fn test_app_with(
+    server: &TestServer,
+    root: &std::path::Path,
+    tweak: impl FnOnce(&mut glasscraft_lib::core::app::AppConfig),
+) -> std::sync::Arc<glasscraft_lib::core::app::App> {
+    use glasscraft_lib::core::app::{App, AppConfig};
+    let mut config = AppConfig::new(glasscraft_lib::core::paths::Paths::new(root));
+    config.endpoints = glasscraft_lib::providers::Endpoints::local(&server.base);
+    config.adoptium_api = format!("{}/adoptium", server.base);
+    config.download_backoff = std::time::Duration::from_millis(5);
+    config.java_override = Some(PathBuf::from(env!("CARGO_BIN_EXE_fake_mc")));
+    tweak(&mut config);
+    App::new(config, glasscraft_lib::core::events::MemorySink::new()).unwrap()
+}
+
+/// Creates an instance that is already provisioned (no downloads), on a free port,
+/// with the EULA accepted.
+pub fn ready_instance(app: &glasscraft_lib::core::app::App, name: &str) -> glasscraft_lib::core::instance::Instance {
+    use glasscraft_lib::core::instance::{LaunchInfo, NewInstance, Provision, ServerType};
+    app.accept_eula().unwrap();
+    let inst = app
+        .create_instance(NewInstance {
+            name: name.into(),
+            server_type: ServerType::Vanilla,
+            mc_version: "26.3".into(),
+            ..Default::default()
+        })
+        .unwrap();
+    let port = std::net::TcpListener::bind("127.0.0.1:0").unwrap().local_addr().unwrap().port();
+    app.store
+        .modify(&inst.id, |i| {
+            i.provision = Provision::Ready;
+            i.launch = Some(LaunchInfo::Jar { jar: "server.jar".into() });
+            i.java_major = Some(25);
+            i.port = port;
+        })
+        .unwrap()
+}
+
+/// Console text of an instance.
+pub fn console_text(app: &glasscraft_lib::core::app::App, id: &str) -> Vec<String> {
+    app.console(id).into_iter().map(|l| l.text).collect()
+}

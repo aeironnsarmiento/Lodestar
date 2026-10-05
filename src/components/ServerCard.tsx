@@ -4,6 +4,7 @@ import { formatBytes, formatPercent } from "../lib/format";
 import { GlassButton } from "./glass/GlassButton";
 import { Icon } from "./Icon";
 import { StatusBadge, type BadgeState } from "./StatusBadge";
+import { ResetButton } from "../dialogs/ResetSeedPopover";
 
 interface ServerCardProps {
   instance: Instance;
@@ -13,7 +14,7 @@ interface ServerCardProps {
   onOpen: () => void;
   onLaunch: () => void;
   onStop: () => void;
-  onReset?: () => void;
+  onReset?: (seed: string | null) => void;
   onRetry: () => void;
 }
 
@@ -105,11 +106,7 @@ export function ServerCard({ instance, snap, progress, error, onOpen, onLaunch, 
                 Launch
               </GlassButton>
             )}
-            {onReset && (
-              <GlassButton size="sm" icon={<Icon name="reset" size={14} />} disabled={!canReset} onClick={stop(onReset)}>
-                Reset
-              </GlassButton>
-            )}
+            {onReset && <ResetButton size="sm" disabled={!canReset} onReset={onReset} />}
           </>
         )}
       </footer>

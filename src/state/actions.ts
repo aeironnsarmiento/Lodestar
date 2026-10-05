@@ -1,6 +1,6 @@
 /** Server actions shared by the dashboard cards and the server page. */
 import { api } from "../lib/api";
-import { errorMessage, getState, setState } from "./store";
+import { errorMessage, getState, setState, type PendingStart } from "./store";
 
 function setActionError(id: string, message: string | null) {
   setState((s) => {
@@ -23,20 +23,35 @@ export async function runAction(id: string, action: () => Promise<unknown>): Pro
   }
 }
 
-/**
- * Launches a server, first asking for the Minecraft EULA if it has never been
- * accepted (KTD15). Declining leaves everything untouched.
- */
-export async function requestLaunch(id: string): Promise<void> {
-  if (!getState().settings?.eulaAcceptedAt) {
-    setState({ eulaPrompt: id });
-    return;
-  }
-  await runAction(id, () => api.startServer(id));
+function perform(pending: PendingStart): Promise<boolean> {
+  return pending.action === "launch"
+    ? runAction(pending.id, () => api.startServer(pending.id))
+    : runAction(pending.id, () => api.resetWorld(pending.id, pending.seed));
 }
 
-export async function acceptEulaAndLaunch(): Promise<void> {
-  const id = getState().eulaPrompt;
+/**
+ * Starts a server (launch or reset), first asking for the Minecraft EULA if it has
+ * never been accepted (KTD15). Declining leaves everything untouched.
+ */
+async function requestStart(pending: PendingStart): Promise<void> {
+  if (!getState().settings?.eulaAcceptedAt) {
+    setState({ eulaPrompt: pending });
+    return;
+  }
+  await perform(pending);
+}
+
+export function requestLaunch(id: string): Promise<void> {
+  return requestStart({ id, action: "launch" });
+}
+
+/** Reset World: instant stop, fresh world (random seed unless one is given), start. */
+export function requestReset(id: string, seed: string | null = null): Promise<void> {
+  return requestStart({ id, action: "reset", seed: seed?.trim() || null });
+}
+
+export async function acceptEulaAndContinue(): Promise<void> {
+  const pending = getState().eulaPrompt;
   try {
     const settings = await api.acceptEula();
     setState({ settings, eulaPrompt: null });
@@ -44,7 +59,7 @@ export async function acceptEulaAndLaunch(): Promise<void> {
     setState({ eulaPrompt: null, error: errorMessage(e) });
     return;
   }
-  if (id) await runAction(id, () => api.startServer(id));
+  if (pending) await perform(pending);
 }
 
 export function declineEula(): void {

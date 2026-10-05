@@ -9,6 +9,7 @@ pub mod instances;
 pub mod java;
 pub mod servers;
 pub mod settings;
+pub mod worlds;
 
 pub type AppState<'a> = tauri::State<'a, Arc<App>>;
 pub type CmdResult<T> = Result<T, String>;

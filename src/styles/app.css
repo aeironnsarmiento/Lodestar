@@ -493,3 +493,70 @@
 .danger-zone .section-title {
   color: var(--danger);
 }
+
+/* ------------------------------------------------------------------ reset */
+
+.split-button {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.split-button > .gbtn:first-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.split-button > .gbtn:nth-child(2) {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+  width: 26px;
+}
+
+.chevron {
+  width: 7px;
+  height: 7px;
+  border-right: 1.8px solid currentColor;
+  border-bottom: 1.8px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+  cursor: default;
+}
+
+:root[data-theme="light"] .popover {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+table.data tr.current td {
+  background: var(--accent-soft);
+}
+
+table.data .seed {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: text;
+}
+
+.tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 650;
+  vertical-align: 1px;
+}

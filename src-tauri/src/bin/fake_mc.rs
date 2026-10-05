@@ -9,6 +9,9 @@
 //!   --universe DIR   create DIR/<level-name>/level.dat like a real server would
 //!   --job-parent     put a second fake_mc in a kill-on-close job, print its PID, wait
 //!
+//! The files `fake_mc_ignore_stop` and `fake_mc_crash` in the working directory act
+//! like `--ignore-stop` and `--crash`, so app-level tests can steer one instance.
+//!
 //! Commands on stdin: stop, crash, join <name>, leave <name>, spam <n>, say <text>,
 //! op <name>, kick <name>; anything else is echoed.
 
@@ -33,7 +36,8 @@ fn read_properties(key: &str) -> Option<String> {
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let has = |f: &str| args.iter().any(|a| a == f);
+    let flag_file = |f: &str| Path::new(&format!("fake_mc_{}", f.trim_start_matches("--").replace('-', "_"))).exists();
+    let has = |f: &str| args.iter().any(|a| a == f) || flag_file(f);
     let value = |f: &str| args.iter().position(|a| a == f).and_then(|i| args.get(i + 1)).cloned();
 
     if has("--job-parent") {

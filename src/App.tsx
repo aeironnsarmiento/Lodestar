@@ -16,7 +16,7 @@ import {
   type Theme,
 } from "./lib/theme";
 import { loadSettings, saveSettings, useStore } from "./state/store";
-import { acceptEulaAndLaunch, declineEula } from "./state/actions";
+import { acceptEulaAndContinue, declineEula } from "./state/actions";
 import { EulaDialog } from "./dialogs/EulaDialog";
 import { startSync } from "./state/sync";
 
@@ -78,7 +78,7 @@ function App() {
           {!serverId && area === "settings" && <SettingsPage reduceEffects={reduceEffects} onReduceEffects={changeReduceEffects} />}
         </main>
       </div>
-      {eulaPrompt && <EulaDialog onAccept={acceptEulaAndLaunch} onDecline={declineEula} />}
+      {eulaPrompt && <EulaDialog onAccept={acceptEulaAndContinue} onDecline={declineEula} />}
     </EffectsContext.Provider>
   );
 }

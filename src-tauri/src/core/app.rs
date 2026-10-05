@@ -17,7 +17,7 @@ use crate::download::Downloader;
 use crate::java::{InstalledRuntime, JavaManager};
 use crate::providers::{Endpoints, Providers, VersionEntry};
 use crate::supervisor::console::log_path;
-use crate::supervisor::{Supervisor, DEFAULT_STOP_TIMEOUT};
+use crate::supervisor::{ServerState, StateChange, Supervisor, DEFAULT_STOP_TIMEOUT};
 
 /// Where the app's data lives and which services it talks to.
 #[derive(Clone)]
@@ -81,7 +81,30 @@ impl App {
         for inst in store.list() {
             supervisor.load_history(&inst.id, &log_path(&config.paths.server_dir(&inst.id)));
         }
-        Ok(Arc::new(Self { store, events, providers, java, supervisor, java_override: config.java_override }))
+        let app = Arc::new(Self { store, events, providers, java, supervisor, java_override: config.java_override });
+        app.install_hooks();
+        Ok(app)
+    }
+
+    fn install_hooks(self: &Arc<Self>) {
+        let weak = Arc::downgrade(self);
+        self.supervisor.add_hook(Arc::new(move |change| {
+            if let Some(app) = weak.upgrade() {
+                app.on_state_change(change);
+            }
+        }));
+    }
+
+    /// Reacts to lifecycle transitions (runs on the supervisor's task; must not block).
+    fn on_state_change(&self, change: &StateChange) {
+        if change.state == ServerState::Online {
+            if let Ok(inst) = self.store.get(&change.id) {
+                let name = inst.op_name.trim();
+                if !name.is_empty() {
+                    let _ = self.supervisor.send_command(&change.id, &format!("op {name}"));
+                }
+            }
+        }
     }
 
     pub fn paths(&self) -> &Paths {

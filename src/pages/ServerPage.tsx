@@ -5,17 +5,20 @@ import { GlassButton } from "../components/glass/GlassButton";
 import { Icon } from "../components/Icon";
 import { api, SERVER_TYPE_LABELS, type Instance, type Snapshot } from "../lib/api";
 import { stoppedSnapshot, useStore } from "../state/store";
-import { requestLaunch, runAction } from "../state/actions";
+import { requestLaunch, requestReset, runAction } from "../state/actions";
+import { ResetButton } from "../dialogs/ResetSeedPopover";
 import { badgeState } from "../components/ServerCard";
 import { OverviewTab } from "./server/OverviewTab";
 import { ConsoleTab } from "./server/ConsoleTab";
 import { SettingsTab } from "./server/SettingsTab";
+import { WorldsTab } from "./server/WorldsTab";
 
 export type ServerTab = "overview" | "console" | "worlds" | "settings";
 
 const TABS: { id: ServerTab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "console", label: "Console" },
+  { id: "worlds", label: "Worlds" },
   { id: "settings", label: "Settings" },
 ];
 
@@ -76,6 +79,7 @@ export function ServerPage({ id, onBack, initialTab = "overview" }: ServerPagePr
       <div role="tabpanel">
         {tab === "overview" && <OverviewTab instance={instance} snap={snap} />}
         {tab === "console" && <ConsoleTab instance={instance} snap={snap} />}
+        {tab === "worlds" && <WorldsTab instance={instance} />}
         {tab === "settings" && <SettingsTab instance={instance} running={running} onDeleted={onBack} />}
       </div>
     </div>
@@ -95,8 +99,10 @@ function ServerActions({ instance, snap }: ActionsProps) {
   const s = snap.state;
   const ready = instance.provision.state === "ready";
   const run = (action: () => Promise<void>) => runAction(instance.id, action);
+  const canReset = ready && (s === "stopped" || s === "online" || s === "crashed");
   return (
     <div className="row">
+      <ResetButton disabled={!canReset} onReset={(seed) => requestReset(instance.id, seed)} />
       {(s === "stopped" || s === "crashed") && (
         <GlassButton
           variant="primary"

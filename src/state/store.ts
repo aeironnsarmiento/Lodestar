@@ -5,6 +5,8 @@
 import { useSyncExternalStore } from "react";
 import { api, type AppSettings, type Instance, type Snapshot, type TaskProgress } from "../lib/api";
 
+export type PendingStart = { id: string; action: "launch" } | { id: string; action: "reset"; seed: string | null };
+
 export interface StoreState {
   instances: Instance[];
   /** Live state per instance id. */
@@ -13,8 +15,8 @@ export interface StoreState {
   progress: Record<string, TaskProgress>;
   settings: AppSettings | null;
   error: string | null;
-  /** Instance waiting on the EULA dialog before it can launch. */
-  eulaPrompt: string | null;
+  /** An action waiting on the EULA dialog before it can run. */
+  eulaPrompt: PendingStart | null;
   /** Last failed action per instance (launch, stop...). */
   actionErrors: Record<string, string>;
 }
