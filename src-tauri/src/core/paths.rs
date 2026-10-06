@@ -13,12 +13,19 @@ impl Paths {
         Self { root: root.into() }
     }
 
-    /// `%APPDATA%\Lodestar`.
+    /// `%APPDATA%\Lodestar` on Windows, `~/Library/Application Support/Lodestar`
+    /// on macOS.
     pub fn default_root() -> PathBuf {
-        let base = std::env::var_os("APPDATA")
-            .map(PathBuf::from)
-            .unwrap_or_else(std::env::temp_dir);
-        base.join("Lodestar")
+        let base = if cfg!(windows) {
+            std::env::var_os("APPDATA").map(PathBuf::from)
+        } else if cfg!(target_os = "macos") {
+            std::env::var_os("HOME").map(|h| PathBuf::from(h).join("Library").join("Application Support"))
+        } else {
+            std::env::var_os("XDG_DATA_HOME")
+                .map(PathBuf::from)
+                .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local").join("share")))
+        };
+        base.unwrap_or_else(std::env::temp_dir).join("Lodestar")
     }
 
     /// The app was called Glasscraft before. If `root` does not exist yet but the old

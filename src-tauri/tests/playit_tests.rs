@@ -8,7 +8,7 @@ use std::time::Duration;
 use common::{fixture, Response, TestServer};
 use lodestar_lib::core::events::MemorySink;
 use lodestar_lib::download::Downloader;
-use lodestar_lib::playit::agent::secret_path;
+use lodestar_lib::playit::agent::{agent_path, secret_path};
 use lodestar_lib::playit::claim::{parse_secret_file, secret_file_contents};
 use lodestar_lib::playit::{LinkState, PlayitConfig, PlayitManager, TunnelState};
 use lodestar_lib::supervisor::job_object::process_alive;
@@ -212,8 +212,9 @@ async fn an_agent_with_the_wrong_hash_is_refused_and_deleted() {
     let mgr = manager(&server, dir.path(), None);
     let err = mgr.setup().await.unwrap_err();
     assert!(format!("{err:#}").contains("SHA-256"), "{err:#}");
-    assert!(!dir.path().join("playitd.exe").exists());
-    assert!(!dir.path().join("playitd.exe.part").exists());
+    let agent = agent_path(dir.path());
+    assert!(!agent.exists());
+    assert!(!agent.with_file_name(format!("{}.part", agent.file_name().unwrap().to_string_lossy())).exists());
     assert_eq!(mgr.status().state, LinkState::NotSetUp);
     assert!(mgr.status().message.is_some());
 }
@@ -229,7 +230,11 @@ async fn an_agent_that_exits_is_restarted_and_shows_offline_meanwhile() {
     eventually(|| mgr.status().state == LinkState::Linked && mgr.agent_pid().is_some()).await;
     let first = mgr.agent_pid().unwrap();
 
-    std::process::Command::new("taskkill").args(["/F", "/PID", &first.to_string()]).output().unwrap();
+    if cfg!(windows) {
+        std::process::Command::new("taskkill").args(["/F", "/PID", &first.to_string()]).output().unwrap();
+    } else {
+        std::process::Command::new("kill").args(["-9", &first.to_string()]).output().unwrap();
+    }
     eventually(|| mgr.status().state == LinkState::AgentOffline).await;
     assert!(mgr.status().message.unwrap().contains("restarting"));
     eventually(|| mgr.status().state == LinkState::Linked && mgr.agent_pid().is_some_and(|p| p != first)).await;
@@ -252,10 +257,13 @@ async fn live_agent_hash_and_claim_api_match() {
     use lodestar_lib::playit::{agent, claim};
     let dir = tempfile::tempdir().unwrap();
     let d = Downloader::new();
-    let exe = agent::install(&d, agent::AGENT_URL, agent::AGENT_SHA256, dir.path(), &lodestar_lib::download::no_progress)
-        .await
-        .unwrap();
-    assert!(exe.is_file());
+    // Only Windows downloads the agent; macOS bundles one built from source.
+    if !agent::AGENT_URL.is_empty() {
+        let exe = agent::install(&d, agent::AGENT_URL, agent::AGENT_SHA256, dir.path(), &lodestar_lib::download::no_progress)
+            .await
+            .unwrap();
+        assert!(exe.is_file());
+    }
 
     let api = PlayitApi::new(d.client().clone(), DEFAULT_API);
     let status = api.claim_setup(&claim::generate_code(), "Lodestar live test").await.unwrap().unwrap();

@@ -224,20 +224,50 @@ pub fn fixture_server() -> TestServer {
             _ if p.starts_with("/modrinth/project/ferrite-core/") => Response::ok(fixture("providers/modrinth_empty.json")),
             _ if p.starts_with("/adoptium/assets/latest/") => {
                 let major: u32 = p["/adoptium/assets/latest/".len()..].split('/').next().unwrap().parse().unwrap();
-                let zip = jre_zip(major);
+                let archive = jre_archive(major);
                 Response::json(serde_json::json!([{ "binary": { "package": {
-                    "link": format!("{base}/files/jre-{major}.zip"),
-                    "checksum": sha256_hex(&zip),
-                    "name": format!("OpenJDK{major}U-jre_x64_windows_hotspot.zip"),
+                    "link": format!("{base}/files/jre-{major}.{JRE_EXT}"),
+                    "checksum": sha256_hex(&archive),
+                    "name": format!("OpenJDK{major}U-jre_hotspot.{JRE_EXT}"),
                 }}}]))
             }
             _ if p.starts_with("/files/jre-") => {
-                let major: u32 = p.trim_start_matches("/files/jre-").trim_end_matches(".zip").parse().unwrap();
-                Response::ok(jre_zip(major))
+                let major: u32 = p.trim_start_matches("/files/jre-").split('.').next().unwrap().parse().unwrap();
+                Response::ok(jre_archive(major))
             }
             _ => Response::status(404),
         }
     })
+}
+
+/// Temurin ships a zip for Windows and a tarball for macOS and Linux.
+pub const JRE_EXT: &str = if cfg!(windows) { "zip" } else { "tar.gz" };
+
+/// A fake Temurin JRE in this platform's package format.
+pub fn jre_archive(major: u32) -> Vec<u8> {
+    if cfg!(windows) {
+        jre_zip(major)
+    } else {
+        jre_tar_gz(major)
+    }
+}
+
+/// A fake Temurin JRE tarball: one top-level folder with `bin/java` and a `release`
+/// file, under `Contents/Home` on macOS as in the real bundle.
+pub fn jre_tar_gz(major: u32) -> Vec<u8> {
+    let home = if cfg!(target_os = "macos") { "Contents/Home/" } else { "" };
+    let top = format!("jdk-{major}.0.1+9-jre/{home}");
+    let mut tar = tar::Builder::new(flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::fast()));
+    let mut add = |path: String, mode: u32, body: &[u8]| {
+        let mut header = tar::Header::new_gnu();
+        header.set_size(body.len() as u64);
+        header.set_mode(mode);
+        header.set_cksum();
+        tar.append_data(&mut header, path, body).unwrap();
+    };
+    add(format!("{top}bin/java"), 0o755, b"not a real java");
+    add(format!("{top}release"), 0o644, format!("JAVA_VERSION=\"{major}.0.1\"\n").as_bytes());
+    tar.into_inner().unwrap().finish().unwrap()
 }
 
 /// A fake Temurin JRE zip: one top-level folder with `bin/java.exe` and a `release` file.

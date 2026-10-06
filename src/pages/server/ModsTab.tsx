@@ -80,7 +80,7 @@ export function ModsTab({ instance, running, onOpenSettings }: ModsTabProps) {
     }
   };
 
-  // Drag and drop from Explorer: Tauri hands over real file paths.
+  // Drag and drop from Explorer or Finder: Tauri hands over real file paths.
   useEffect(() => {
     if (!inTauri()) return;
     let unlisten: (() => void) | undefined;

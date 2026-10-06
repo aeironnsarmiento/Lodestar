@@ -9,7 +9,14 @@ use tokio::process::{Child, ChildStderr, ChildStdin, ChildStdout, Command};
 use super::job_object::JobObject;
 use crate::providers::LaunchSpec;
 
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+/// Keeps a child from opening a console window (Windows) and makes it the leader of
+/// its own process group (macOS), so the watchdog can kill it with anything it starts.
+pub fn detach(cmd: &mut Command) {
+    #[cfg(windows)]
+    cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+    #[cfg(unix)]
+    cmd.process_group(0);
+}
 
 pub struct Spawned {
     pub child: Child,
@@ -24,8 +31,8 @@ pub fn spawn(spec: &LaunchSpec, job: Option<&JobObject>) -> Result<Spawned> {
         .current_dir(&spec.working_dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .creation_flags(CREATE_NO_WINDOW);
+        .stderr(Stdio::piped());
+    detach(&mut cmd);
     let mut child = cmd
         .spawn()
         .with_context(|| format!("Could not start {}", spec.program.display()))?;

@@ -71,8 +71,6 @@ pub fn installer_url(maven_base: &str, full_version: &str) -> String {
     format!("{maven_base}/{full_version}/forge-{full_version}-installer.jar")
 }
 
-const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-
 /// `java -jar <installer> --installServer <dir>` with no console window.
 pub async fn run_installer(java: &Path, installer: &Path, server_dir: &Path) -> Result<()> {
     std::fs::create_dir_all(server_dir)?;
@@ -86,8 +84,7 @@ pub async fn run_installer(java: &Path, installer: &Path, server_dir: &Path) -> 
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .kill_on_drop(true);
-    #[cfg(windows)]
-    cmd.creation_flags(CREATE_NO_WINDOW);
+    crate::supervisor::process::detach(&mut cmd);
     let child = cmd.spawn().with_context(|| format!("could not start {}", java.display()))?;
     let out = tokio::time::timeout(Duration::from_secs(15 * 60), child.wait_with_output())
         .await

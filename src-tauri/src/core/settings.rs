@@ -15,6 +15,8 @@ pub struct AppSettings {
     pub theme: Theme,
     pub reduce_effects: bool,
     pub close_to_tray: bool,
+    /// Start at login. The name predates macOS support and is kept so saved
+    /// settings still load.
     pub start_with_windows: bool,
     /// RFC 3339 time the Minecraft EULA was accepted (KTD15). `None` = not accepted.
     pub eula_accepted_at: Option<String>,

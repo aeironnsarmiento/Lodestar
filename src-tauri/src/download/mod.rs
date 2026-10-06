@@ -1,4 +1,4 @@
-//! HTTP downloads with retry, hash verification and zip extraction (R11).
+//! HTTP downloads with retry, hash verification and archive extraction (R11).
 //!
 //! Files stream to `<dest>.part` and are renamed into place only after the hash
 //! checks out, so a failed or corrupt download never leaves a usable-looking file.
@@ -248,6 +248,25 @@ fn part_path(dest: &Path) -> PathBuf {
 /// (as JDK zips do), its contents land directly in `dest_dir`. Extraction happens in
 /// a sibling temp folder that is removed on failure.
 pub fn extract_zip_flatten(zip_path: &Path, dest_dir: &Path) -> Result<()> {
+    extract_flatten(zip_path, dest_dir, |tmp| {
+        let file = fs::File::open(zip_path)?;
+        let mut archive = zip::ZipArchive::new(file).context("the archive is not a valid zip")?;
+        archive.extract(tmp).context("could not extract the archive")
+    })
+}
+
+/// [`extract_zip_flatten`] for a `.tar.gz` (the macOS and Linux JDK packages). File
+/// modes and symlinks are kept, so `bin/java` stays executable.
+pub fn extract_tar_gz_flatten(archive_path: &Path, dest_dir: &Path) -> Result<()> {
+    extract_flatten(archive_path, dest_dir, |tmp| {
+        let file = fs::File::open(archive_path)?;
+        tar::Archive::new(flate2::read::GzDecoder::new(file))
+            .unpack(tmp)
+            .context("could not extract the archive")
+    })
+}
+
+fn extract_flatten(archive_path: &Path, dest_dir: &Path, unpack: impl FnOnce(&Path) -> Result<()>) -> Result<()> {
     let parent = dest_dir.parent().ok_or_else(|| anyhow!("no parent for {}", dest_dir.display()))?;
     fs::create_dir_all(parent)?;
     let tmp = parent.join(format!(
@@ -258,9 +277,7 @@ pub fn extract_zip_flatten(zip_path: &Path, dest_dir: &Path) -> Result<()> {
         fs::remove_dir_all(&tmp)?;
     }
     let result = (|| -> Result<()> {
-        let file = fs::File::open(zip_path)?;
-        let mut archive = zip::ZipArchive::new(file).context("the archive is not a valid zip")?;
-        archive.extract(&tmp).context("could not extract the archive")?;
+        unpack(&tmp)?;
         let entries: Vec<_> = fs::read_dir(&tmp)?.collect::<std::io::Result<_>>()?;
         let source = if entries.len() == 1 && entries[0].file_type()?.is_dir() {
             entries[0].path()
@@ -279,5 +296,5 @@ pub fn extract_zip_flatten(zip_path: &Path, dest_dir: &Path) -> Result<()> {
     if result.is_err() && dest_dir.exists() {
         fs::remove_dir_all(dest_dir).ok();
     }
-    result.map_err(|e| e.context(format!("extracting {}", zip_path.display())))
+    result.map_err(|e| e.context(format!("extracting {}", archive_path.display())))
 }

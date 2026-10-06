@@ -350,6 +350,7 @@ impl Supervisor {
 
         let (sup, rt2) = (self.clone(), rt.clone());
         tokio::spawn(async move {
+            let pid = child.id();
             let status = tokio::select! {
                 s = child.wait() => s,
                 _ = rt2.kill.notified() => {
@@ -357,6 +358,9 @@ impl Supervisor {
                     child.wait().await
                 }
             };
+            if let Some(job) = sup.job() {
+                job.release(pid);
+            }
             // Let the readers drain the last output before reporting the exit.
             let _ = tokio::time::timeout(Duration::from_secs(2), async {
                 let _ = out_task.await;

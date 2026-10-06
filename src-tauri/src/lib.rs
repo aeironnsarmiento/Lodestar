@@ -11,7 +11,7 @@ pub mod worlds;
 
 use std::sync::Arc;
 
-use tauri::{Manager, WindowEvent};
+use tauri::{Manager, RunEvent, WindowEvent};
 
 use crate::core::app::{App, AppConfig};
 use crate::core::events::TauriSink;
@@ -37,6 +37,8 @@ pub fn run() {
             let app = App::new(AppConfig::new(Paths::new(root)), events)?;
             tauri_app.manage(app.clone());
 
+            #[cfg(target_os = "macos")]
+            handle.set_menu(tray::app_menu(&handle)?)?;
             tray::install(&handle)?;
             if autostart::launched_minimized() {
                 if let Some(w) = handle.get_webview_window("main") {
@@ -48,6 +50,11 @@ pub fn run() {
 
             tauri::async_runtime::spawn(async move { app.start_background() });
             Ok(())
+        })
+        .on_menu_event(|app, event| {
+            if event.id() == tray::APP_QUIT {
+                tray::quit(app);
+            }
         })
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
@@ -107,6 +114,18 @@ pub fn run() {
             commands::addons::inspect_modpack_file,
             commands::addons::update_modpack,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| match event {
+            // Quit from the Dock or at logout: stop servers gracefully first. The
+            // final `exit(0)` from `tray::quit` carries a code and goes through.
+            RunEvent::ExitRequested { code: None, api, .. } => {
+                api.prevent_exit();
+                tray::quit(app);
+            }
+            // Clicking the Dock icon brings back a window hidden to the menu bar.
+            #[cfg(target_os = "macos")]
+            RunEvent::Reopen { has_visible_windows: false, .. } => tray::show_main(app),
+            _ => {}
+        });
 }

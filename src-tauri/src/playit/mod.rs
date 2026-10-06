@@ -31,8 +31,8 @@ pub struct PlayitConfig {
     pub api_base: String,
     pub agent_url: String,
     pub agent_sha256: String,
-    /// Runs this program as the agent instead of the downloaded `playitd.exe`
-    /// (tests substitute `fake_mc`).
+    /// Runs this program as the agent instead of downloading one: the sidecar
+    /// bundled with the macOS app, or `fake_mc` in tests.
     pub agent_program: Option<PathBuf>,
     pub poll: Duration,
     pub restart_delay: Duration,
@@ -45,7 +45,7 @@ impl Default for PlayitConfig {
             api_base: api::DEFAULT_API.into(),
             agent_url: agent::AGENT_URL.into(),
             agent_sha256: agent::AGENT_SHA256.into(),
-            agent_program: None,
+            agent_program: agent::bundled_agent(),
             poll: Duration::from_secs(1),
             restart_delay: Duration::from_secs(3),
             tunnel_timeout: Duration::from_secs(180),
@@ -327,13 +327,17 @@ impl PlayitManager {
                 };
                 match agent::spawn(&program, &mgr.dir, mgr.supervisor.job()) {
                     Ok(mut proc) => {
-                        mgr.inner.lock().unwrap().agent_pid = proc.child.id();
+                        let pid = proc.child.id();
+                        mgr.inner.lock().unwrap().agent_pid = pid;
                         mgr.set_state(LinkState::Linked, None);
                         tokio::select! {
                             _ = proc.child.wait() => {}
                             _ = mgr.kill_agent.notified() => {
                                 let _ = proc.child.kill().await;
                             }
+                        }
+                        if let Some(job) = mgr.supervisor.job() {
+                            job.release(pid);
                         }
                     }
                     Err(e) => mgr.set_state(LinkState::AgentOffline, Some(format!("{e:#}"))),

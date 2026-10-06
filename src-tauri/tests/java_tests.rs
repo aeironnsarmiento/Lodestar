@@ -2,10 +2,10 @@ mod common;
 
 use std::time::Duration;
 
-use common::{fixture_server, sha256_hex, Response, TestServer};
+use common::{fixture_server, sha256_hex, Response, TestServer, JRE_EXT};
 use lodestar_lib::core::paths::Paths;
 use lodestar_lib::download::{no_progress, Downloader};
-use lodestar_lib::java::{parse_java_version, target_major, JavaManager};
+use lodestar_lib::java::{java_binary, parse_java_version, target_major, JavaManager};
 use lodestar_lib::providers::{Endpoints, Providers};
 
 fn manager(server: &TestServer, root: &std::path::Path) -> JavaManager {
@@ -45,11 +45,17 @@ async fn installs_once_and_reuses_an_installed_runtime() {
     let java = manager(&server, dir.path());
 
     let exe = java.ensure(21, &no_progress).await.unwrap();
-    assert_eq!(exe, Paths::new(dir.path()).java_dir(21).join("bin").join("java.exe"));
+    assert_eq!(exe, java_binary(&Paths::new(dir.path()).java_dir(21)));
     assert!(exe.is_file());
-    assert!(!Paths::new(dir.path()).java_runtimes_dir().join("jre-21.zip").exists(), "zip is cleaned up");
-    let downloads = server.count("/files/jre-21.zip");
+    let archive = format!("jre-21.{JRE_EXT}");
+    assert!(!Paths::new(dir.path()).java_runtimes_dir().join(&archive).exists(), "archive is cleaned up");
+    let downloads = server.count(&format!("/files/{archive}"));
     assert_eq!(downloads, 1);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        assert_ne!(std::fs::metadata(&exe).unwrap().permissions().mode() & 0o111, 0, "java is executable");
+    }
 
     // Already installed: no network at all.
     let before = server.requests().len();
@@ -63,6 +69,23 @@ async fn installs_once_and_reuses_an_installed_runtime() {
 }
 
 #[tokio::test]
+async fn asks_temurin_for_this_platform() {
+    let server = fixture_server();
+    let dir = tempfile::tempdir().unwrap();
+    manager(&server, dir.path()).ensure(21, &no_progress).await.unwrap();
+    let query = server.requests().into_iter().find(|r| r.path.starts_with("/adoptium/")).unwrap().path;
+    let (os, arch) = match (std::env::consts::OS, std::env::consts::ARCH) {
+        ("windows", _) => ("windows", "x64"),
+        ("macos", "aarch64") => ("mac", "aarch64"),
+        ("macos", _) => ("mac", "x64"),
+        (_, "aarch64") => ("linux", "aarch64"),
+        _ => ("linux", "x64"),
+    };
+    assert!(query.contains(&format!("os={os}")), "{query}");
+    assert!(query.contains(&format!("architecture={arch}")), "{query}");
+}
+
+#[tokio::test]
 async fn a_runtime_folder_without_java_exe_is_repaired() {
     let server = fixture_server();
     let dir = tempfile::tempdir().unwrap();
@@ -73,7 +96,7 @@ async fn a_runtime_folder_without_java_exe_is_repaired() {
 
     assert!(java.installed().is_empty(), "a folder without java.exe is not installed");
     let exe = java.ensure(16, &no_progress).await.unwrap();
-    assert!(exe.ends_with("jre-17/bin/java.exe") || exe.ends_with(r"jre-17\bin\java.exe"));
+    assert_eq!(exe, java_binary(&broken));
     assert!(exe.is_file());
     assert!(!broken.join("lib").join("leftover").exists(), "the broken folder was replaced");
 }
@@ -154,5 +177,21 @@ async fn live_adoptium_has_windows_jres_for_every_target() {
         let pkg = &assets[0]["binary"]["package"];
         assert!(pkg["name"].as_str().unwrap().ends_with(".zip"), "Java {major}");
         assert_eq!(pkg["checksum"].as_str().unwrap().len(), 64, "Java {major}");
+    }
+}
+
+/// Opt-in: installs real Temurin runtimes for this platform through `JavaManager` and
+/// checks each one runs. Java 8 covers the Intel-build fallback on Apple Silicon.
+#[tokio::test]
+async fn live_installs_working_runtimes_for_this_platform() {
+    if std::env::var("LODESTAR_LIVE_TESTS").ok().as_deref() != Some("1") {
+        eprintln!("skipped: set LODESTAR_LIVE_TESTS=1 to run");
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let java = JavaManager::new(Paths::new(dir.path()).java_runtimes_dir(), Downloader::new(), JavaManager::DEFAULT_API);
+    for major in [8, 21] {
+        let exe = java.ensure(major, &no_progress).await.unwrap_or_else(|e| panic!("Java {major}: {e:#}"));
+        assert_eq!(lodestar_lib::java::probe_version(&exe).await, Some(major), "{}", exe.display());
     }
 }

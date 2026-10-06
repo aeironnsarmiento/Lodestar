@@ -109,7 +109,7 @@ fn main() {
 }
 
 /// Spawns a child fake_mc inside a kill-on-close Job Object and waits forever. When
-/// this process is killed, Windows must kill the child too.
+/// this process is killed, the OS (or the watchdog on macOS) must kill the child too.
 fn job_parent() {
     let job = lodestar_lib::supervisor::job_object::JobObject::new_kill_on_close().expect("job");
     let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();

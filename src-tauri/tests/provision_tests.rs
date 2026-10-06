@@ -66,7 +66,7 @@ async fn a_fabric_26_3_instance_provisions_java_server_files_and_speed_mods() {
     assert!(matches!(&inst.launch, Some(LaunchInfo::Jar { jar }) if jar.contains("fabric-26.3")));
     assert_eq!(inst.managed_mods.len(), 1, "lithium installs; ferrite-core has no build and is skipped");
     assert_eq!(inst.managed_mods_for.as_deref(), Some("fabric-26.3"));
-    assert!(Paths::new(dir.path()).java_dir(25).join("bin").join("java.exe").is_file());
+    assert!(lodestar_lib::java::java_binary(&Paths::new(dir.path()).java_dir(25)).is_file());
     assert!(Paths::new(dir.path()).server_dir(&inst.id).join("mods").join(&inst.managed_mods[0]).is_file());
 }
 

@@ -236,3 +236,27 @@ async fn servers_flagged_to_start_with_the_app_are_launched() {
     assert_eq!(app.supervisor.state(&manual.id), ServerState::Stopped);
     app.shutdown().await;
 }
+
+/// On macOS the keep-awake request is a `caffeinate` child tied to our pid.
+#[cfg(target_os = "macos")]
+#[test]
+fn keep_awake_runs_caffeinate_only_while_held() {
+    use lodestar_lib::lifecycle::keep_awake::KeepAwake;
+    let pattern = format!("caffeinate -i -w {}", std::process::id());
+    let running = || std::process::Command::new("pgrep").args(["-f", &pattern]).output().unwrap().status.success();
+    let wait_for = |want: bool| {
+        for _ in 0..100 {
+            if running() == want {
+                return true;
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        false
+    };
+    let keep = KeepAwake::new();
+    assert!(!running());
+    keep.set(true);
+    assert!(wait_for(true), "caffeinate starts");
+    keep.set(false);
+    assert!(wait_for(false), "caffeinate stops");
+}

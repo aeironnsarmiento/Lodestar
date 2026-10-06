@@ -29,3 +29,6 @@ src-tauri/gen/schemas
 
 # Local planning notes
 docs/
+
+# playitd built from source for the macOS sidecar (scripts/build-playitd.sh)
+src-tauri/binaries

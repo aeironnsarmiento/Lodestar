@@ -5,6 +5,7 @@ import { GlassButton } from "../components/glass/GlassButton";
 import { GlassInput, Switch } from "../components/glass/GlassInput";
 import { Icon } from "../components/Icon";
 import { api, CURSEFORGE_ENABLED } from "../lib/api";
+import { systemWords } from "../lib/platform";
 import { saveSettings, useStore } from "../state/store";
 import {
   applyGlassOpacity,
@@ -32,6 +33,7 @@ interface SettingsPageProps {
 export function SettingsPage({ reduceEffects, onReduceEffects }: SettingsPageProps) {
   const settings = useStore((s) => s.settings);
   const error = useStore((s) => s.error);
+  const words = systemWords();
 
   return (
     <div className="page">
@@ -40,14 +42,14 @@ export function SettingsPage({ reduceEffects, onReduceEffects }: SettingsPagePro
         <AppearanceSection reduceEffects={reduceEffects} onReduceEffects={onReduceEffects} />
 
         <section className="surface panel">
-          <h2 className="section-title">Windows</h2>
+          <h2 className="section-title">{words.section}</h2>
           <div className="setting-row">
             <div>
-              <div className="label">Close to tray</div>
-              <div className="hint">Closing the window keeps Lodestar and your servers running in the tray.</div>
+              <div className="label">Close to {words.tray}</div>
+              <div className="hint">Closing the window keeps Lodestar and your servers running in the {words.tray}.</div>
             </div>
             <Switch
-              label="Close to tray"
+              label={`Close to ${words.tray}`}
               checked={settings?.closeToTray ?? true}
               disabled={!settings}
               onChange={(v) => saveSettings({ closeToTray: v })}
@@ -55,11 +57,11 @@ export function SettingsPage({ reduceEffects, onReduceEffects }: SettingsPagePro
           </div>
           <div className="setting-row">
             <div>
-              <div className="label">Start with Windows</div>
-              <div className="hint">Opens minimized in the tray and starts servers set to start with the app.</div>
+              <div className="label">{words.startAtLogin}</div>
+              <div className="hint">Opens minimized in the {words.tray} and starts servers set to start with the app.</div>
             </div>
             <Switch
-              label="Start with Windows"
+              label={words.startAtLogin}
               checked={settings?.startWithWindows ?? false}
               disabled={!settings}
               onChange={(v) => saveSettings({ startWithWindows: v })}

@@ -1,5 +1,6 @@
-//! Start with Windows (R8, KTD14): an HKCU Run entry launching `--minimized`, so the
-//! app starts in the tray and brings up servers flagged to start with it.
+//! Start at login (R8, KTD14): an HKCU Run entry on Windows, a LaunchAgent on macOS,
+//! launching `--minimized`, so the app starts in the tray and brings up servers
+//! flagged to start with it.
 
 use tauri::plugin::TauriPlugin;
 use tauri::{AppHandle, Wry};
@@ -11,7 +12,7 @@ pub fn plugin() -> TauriPlugin<Wry> {
     tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec![MINIMIZED_ARG]))
 }
 
-/// Adds or removes the Run entry to match the setting.
+/// Adds or removes the login entry to match the setting.
 pub fn apply(app: &AppHandle, enabled: bool) -> Result<(), String> {
     let manager = app.autolaunch();
     let current = manager.is_enabled().unwrap_or(false);
@@ -19,11 +20,16 @@ pub fn apply(app: &AppHandle, enabled: bool) -> Result<(), String> {
         return Ok(());
     }
     let result = if enabled { manager.enable() } else { manager.disable() };
-    result.map_err(|e| format!("Could not change start-with-Windows: {e}"))
+    result.map_err(|e| format!("Could not change start at login: {e}"))
 }
 
 /// Removes the Run entry left by the app's old name (Glasscraft), so the old build
-/// never starts alongside this one. Missing entries are fine.
+/// never starts alongside this one. Missing entries are fine. Glasscraft was
+/// Windows-only, so there is nothing to remove elsewhere.
+#[cfg(not(windows))]
+pub fn remove_legacy_entry() {}
+
+#[cfg(windows)]
 pub fn remove_legacy_entry() {
     use windows_sys::Win32::System::Registry::{RegDeleteKeyValueW, HKEY_CURRENT_USER};
     let wide = |s: &str| s.encode_utf16().chain(std::iter::once(0)).collect::<Vec<u16>>();

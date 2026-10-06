@@ -1,5 +1,5 @@
 //! Lifecycle automation (U8): crash restarts, scheduled restarts, keep-awake, tray
-//! and start-with-Windows.
+//! and start at login.
 
 pub mod autostart;
 pub mod crash;
