@@ -1,0 +1,85 @@
+name: Release
+
+# Push a tag like v0.1.0 to build Windows and macOS and publish a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - run: npx tauri build
+      - name: Collect
+        shell: bash
+        run: |
+          mkdir out
+          cp src-tauri/target/release/bundle/nsis/*-setup.exe out/Lodestar-Windows-Setup.exe
+          cp src-tauri/target/release/lodestar.exe out/Lodestar-Windows-Portable.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: out/*
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      # Builds the playit.gg agent for both architectures first (beforeBuildCommand).
+      - run: npx tauri build --target universal-apple-darwin
+      - name: Collect
+        run: |
+          mkdir out
+          cp src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg out/Lodestar-macOS.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: out/*
+
+  release:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'NOTES'
+          ## Download
+
+          - **Windows 10/11:** `Lodestar-Windows-Setup.exe` (installer) or `Lodestar-Windows-Portable.exe` (runs without installing). If SmartScreen appears, choose **More info → Run anyway**.
+          - **macOS 11+ (Apple Silicon or Intel):** `Lodestar-macOS.dmg`. Drag Lodestar to Applications. On first launch, go to **System Settings → Privacy & Security → Open Anyway**.
+
+          The app isn't code-signed yet, so each OS asks once.
+          NOTES
+          gh release create "$GITHUB_REF_NAME" out/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Lodestar ${GITHUB_REF_NAME#v}" \
+            --notes-file notes.md
