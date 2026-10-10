@@ -704,6 +704,10 @@ input[type="range"] {
   color: var(--danger);
 }
 
+.warn-text {
+  color: var(--warn);
+}
+
 .field {
   display: flex;
   flex-direction: column;

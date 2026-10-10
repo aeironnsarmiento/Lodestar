@@ -211,6 +211,35 @@ export interface VersionEntry {
   releaseTime: string | null;
 }
 
+export type LoaderTag = "recommended" | "latest" | "beta";
+
+/** One Forge, NeoForge or Fabric build a server can install. */
+export interface LoaderOption {
+  id: string;
+  tag: LoaderTag | null;
+  /** Every mod in the server's folder accepts it. */
+  compatible: boolean;
+  /** Indices into `LoaderChoices.requirements` of the mods that refuse it. */
+  rejectedBy: number[];
+}
+
+/** A mod that rules some loader builds out. */
+export interface LoaderRequirement {
+  fileName: string;
+  modName: string;
+  range: string;
+  summary: string;
+}
+
+export interface LoaderChoices {
+  versions: LoaderOption[];
+  requirements: LoaderRequirement[];
+  /** What "Automatic" installs. */
+  automatic: string | null;
+  /** The build in the server folder now. */
+  installed: string | null;
+}
+
 export interface JavaRuntime {
   major: number;
   path: string;
@@ -298,6 +327,9 @@ export const api = {
   retryProvision: (id: string) => invoke<void>("retry_provision", { id }),
   openAddonsFolder: (id: string) => invoke<void>("open_addons_folder", { id }),
   listVersions: (serverType: ServerType) => invoke<VersionEntry[]>("list_versions", { serverType }),
+  loaderChoices: (serverType: ServerType, mcVersion: string, id: string | null = null) =>
+    invoke<LoaderChoices>("loader_choices", { serverType, mcVersion, id }),
+  setLoaderVersion: (id: string, version: string | null) => invoke<void>("set_loader_version", { id, version }),
 
   listJavaRuntimes: () => invoke<JavaRuntime[]>("list_java_runtimes"),
   removeJavaRuntime: (major: number) => invoke<void>("remove_java_runtime", { major }),
@@ -357,6 +389,11 @@ export function loadersFor(serverType: ServerType): string[] {
     default:
       return [];
   }
+}
+
+/** True for server types with a loader build to choose (Fabric, Forge, NeoForge). */
+export function hasLoader(serverType: ServerType): boolean {
+  return serverType === "fabric" || serverType === "forge" || serverType === "neoforge";
 }
 
 /** What a server type's add-ons are called, or null when it cannot load any. */

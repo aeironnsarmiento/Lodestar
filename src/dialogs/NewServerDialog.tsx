@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { GlassButton } from "../components/glass/GlassButton";
 import { GlassInput, GlassSelect, NumberInput, Switch } from "../components/glass/GlassInput";
+import { LoaderVersionSelect, useLoaderChoices } from "../components/LoaderVersionSelect";
 import {
   api,
+  hasLoader,
   SERVER_TYPE_LABELS,
   type Difficulty,
   type GameMode,
@@ -40,6 +42,7 @@ export function NewServerDialog({ onClose, onCreated, onOpenSettings }: NewServe
   const [versionsError, setVersionsError] = useState<string | null>(null);
   const [showSnapshots, setShowSnapshots] = useState(false);
   const [version, setVersion] = useState("");
+  const [loaderVersion, setLoaderVersion] = useState<string | null>(null);
   const [seed, setSeed] = useState("");
   const [gameMode, setGameMode] = useState<GameMode>("survival");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
@@ -60,6 +63,11 @@ export function NewServerDialog({ onClose, onCreated, onOpenSettings }: NewServe
       cancelled = true;
     };
   }, [type]);
+
+  const loaderType = hasLoader(type);
+  const loader = useLoaderChoices(type, loaderType ? version : "", null);
+  // A build picked for one type or Minecraft version does not carry over.
+  useEffect(() => setLoaderVersion(null), [type, version]);
 
   const shown = useMemo(() => visibleVersions(type, versions ?? [], showSnapshots), [type, versions, showSnapshots]);
 
@@ -84,6 +92,7 @@ export function NewServerDialog({ onClose, onCreated, onOpenSettings }: NewServe
         difficulty: hardcore ? "hard" : difficulty,
         hardcore,
         maxPlayers,
+        loaderVersion: loaderType ? loaderVersion : null,
       });
       onCreated(inst);
     } catch (err) {
@@ -171,6 +180,20 @@ export function NewServerDialog({ onClose, onCreated, onOpenSettings }: NewServe
           </GlassSelect>
           {versionsError && <span className="error-text">Could not load versions: {versionsError}</span>}
         </div>
+
+        {loaderType && version && (
+          <div className="field">
+            <label htmlFor="ns-loader">{SERVER_TYPE_LABELS[type]} version</label>
+            <LoaderVersionSelect
+              id="ns-loader"
+              serverType={type}
+              choices={loader.choices}
+              error={loader.error}
+              value={loaderVersion}
+              onChange={setLoaderVersion}
+            />
+          </div>
+        )}
 
         <div className="field-grid">
           <div className="field">

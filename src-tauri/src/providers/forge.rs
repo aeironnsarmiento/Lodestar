@@ -10,7 +10,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use regex::Regex;
 use serde::Deserialize;
 
-use super::{compare_versions, mc_at_least, VersionEntry, VersionKind, MODDED_MIN_MC};
+use super::{compare_versions, mc_at_least, LoaderTag, LoaderVersion, VersionEntry, VersionKind, MODDED_MIN_MC};
 use crate::core::instance::LaunchInfo;
 
 #[derive(Deserialize)]
@@ -67,6 +67,34 @@ pub fn pick_version(meta: &[(String, String)], promos: &HashMap<String, String>,
     builds.first().map(|s| s.to_string())
 }
 
+/// Every build for the Minecraft version, newest first, as the Forge number alone
+/// (`47.4.20`), with Forge's recommended and latest promotions tagged.
+pub fn builds_for(meta: &[(String, String)], promos: &HashMap<String, String>, mc: &str) -> Vec<LoaderVersion> {
+    let prefix = format!("{mc}-");
+    let mut builds: Vec<String> = meta
+        .iter()
+        .filter(|(m, _)| m == mc)
+        .filter_map(|(_, full)| full.strip_prefix(&prefix).map(String::from))
+        .collect();
+    builds.sort_by(|a, b| compare_versions(b, a));
+    builds.dedup();
+    let recommended = promos.get(&format!("{mc}-recommended"));
+    let latest = promos.get(&format!("{mc}-latest"));
+    builds
+        .into_iter()
+        .map(|id| {
+            let tag = if recommended == Some(&id) {
+                Some(LoaderTag::Recommended)
+            } else if latest == Some(&id) {
+                Some(LoaderTag::Latest)
+            } else {
+                None
+            };
+            LoaderVersion { id, tag }
+        })
+        .collect()
+}
+
 pub fn installer_url(maven_base: &str, full_version: &str) -> String {
     format!("{maven_base}/{full_version}/forge-{full_version}-installer.jar")
 }
@@ -115,14 +143,17 @@ fn find_named(dir: &Path, name: &str, depth: usize, out: &mut Vec<PathBuf>) {
 
 /// Works out how to launch an installed Forge/NeoForge server: the generated
 /// `win_args.txt` (used with `@user_jvm_args.txt`), or a shim jar when the installer
-/// produced one instead. Never `run.bat`.
-pub fn detect_launch(server_dir: &Path) -> Result<LaunchInfo> {
+/// produced one instead. Never `run.bat`. `version` (the maven version just installed)
+/// picks its args file when an earlier install left another one behind.
+pub fn detect_launch(server_dir: &Path, version: Option<&str>) -> Result<LaunchInfo> {
     let mut found = Vec::new();
     find_named(&server_dir.join("libraries"), "win_args.txt", 12, &mut found);
-    // Prefer the loader's own args file if several exist.
+    // Prefer the installed build's args file, then the loader's own if several exist.
     found.sort_by_key(|p| {
         let s = p.to_string_lossy().replace('\\', "/");
-        !(s.contains("/net/minecraftforge/forge/") || s.contains("/net/neoforged/neoforge/"))
+        let this_build = version.is_some_and(|v| s.contains(&format!("/{v}/")));
+        let loader = s.contains("/net/minecraftforge/forge/") || s.contains("/net/neoforged/neoforge/");
+        (!this_build, !loader)
     });
     if let Some(p) = found.first() {
         let rel = p.strip_prefix(server_dir).unwrap_or(p);

@@ -7,6 +7,17 @@ vi.mock("@tauri-apps/api/core", () => ({ invoke: (...args: unknown[]) => invoke(
 
 import { NewServerDialog } from "../dialogs/NewServerDialog";
 import { makeInstance, versions } from "./fixtures";
+import type { LoaderChoices } from "../lib/api";
+
+const loaderChoices: LoaderChoices = {
+  versions: [
+    { id: "47.4.26", tag: "latest", compatible: true, rejectedBy: [] },
+    { id: "47.4.10", tag: "recommended", compatible: true, rejectedBy: [] },
+  ],
+  requirements: [],
+  automatic: "47.4.10",
+  installed: null,
+};
 
 function optionIds(): string[] {
   const select = screen.getByLabelText("Minecraft version") as HTMLSelectElement;
@@ -18,6 +29,7 @@ describe("New server dialog", () => {
     invoke.mockReset();
     invoke.mockImplementation((cmd: string) => {
       if (cmd === "list_versions") return Promise.resolve(versions);
+      if (cmd === "loader_choices") return Promise.resolve(loaderChoices);
       if (cmd === "create_instance") return Promise.resolve(makeInstance({ provision: { state: "pending" } }));
       return Promise.reject(`unexpected ${cmd}`);
     });
@@ -76,9 +88,27 @@ describe("New server dialog", () => {
         difficulty: "hard",
         hardcore: false,
         maxPlayers: 4,
+        loaderVersion: null,
       },
     });
     await waitFor(() => expect(onCreated).toHaveBeenCalled());
+  });
+
+  it("lets a Forge server pin a build, defaulting to Automatic", async () => {
+    const user = userEvent.setup();
+    render(<NewServerDialog onClose={() => {}} onCreated={() => {}} />);
+    await user.click(screen.getByRole("radio", { name: "Forge" }));
+    await waitFor(() => expect(optionIds()).toContain("1.17.1"));
+    const loader = await screen.findByLabelText("Forge version");
+    await waitFor(() => expect(within(loader).getByText("Automatic (47.4.10)")).toBeInTheDocument());
+    expect(within(loader).getByText("47.4.26 (latest)")).toBeInTheDocument();
+    expect(invoke).toHaveBeenCalledWith("loader_choices", { serverType: "forge", mcVersion: optionIds()[0], id: null });
+
+    await user.selectOptions(loader, "47.4.26");
+    await user.click(screen.getByRole("button", { name: /create server/i }));
+    expect(invoke).toHaveBeenCalledWith("create_instance", {
+      new: expect.objectContaining({ serverType: "forge", loaderVersion: "47.4.26" }),
+    });
   });
 
   it("creates a hardcore server, which locks difficulty to Hard", async () => {

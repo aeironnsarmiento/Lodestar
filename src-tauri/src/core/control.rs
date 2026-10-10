@@ -59,7 +59,9 @@ impl App {
                 return Err(anyhow!(msg));
             }
         };
-        self.supervisor.start(id, &spec, &log_path(&self.paths().server_dir(id)))
+        self.supervisor.start(id, &spec, &log_path(&self.paths().server_dir(id)))?;
+        self.note_loader_mismatch(&inst);
+        Ok(())
     }
 
     /// Everything that must be ready before the process starts.

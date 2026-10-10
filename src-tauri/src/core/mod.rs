@@ -3,6 +3,7 @@ pub mod automation;
 pub mod control;
 pub mod events;
 pub mod instance;
+pub mod loader;
 pub mod paths;
 pub mod provision;
 pub mod settings;

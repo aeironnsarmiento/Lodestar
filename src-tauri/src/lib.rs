@@ -77,6 +77,8 @@ pub fn run() {
             commands::instances::update_instance,
             commands::instances::delete_instance,
             commands::instances::list_versions,
+            commands::instances::loader_choices,
+            commands::instances::set_loader_version,
             commands::instances::retry_provision,
             commands::instances::open_addons_folder,
             commands::java::list_java_runtimes,

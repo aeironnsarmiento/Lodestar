@@ -3,7 +3,7 @@
 use anyhow::{Context, Result};
 use serde::Deserialize;
 
-use super::{compare_versions, mc_at_least, VersionEntry, VersionKind, MODDED_MIN_MC};
+use super::{compare_versions, mc_at_least, LoaderTag, LoaderVersion, VersionEntry, VersionKind, MODDED_MIN_MC};
 
 #[derive(Deserialize)]
 struct Versions {
@@ -61,6 +61,16 @@ pub fn pick_version(all: &[String], mc: &str) -> Option<String> {
         .find(|v| !v.contains("beta"))
         .or_else(|| matching.first())
         .map(|v| v.to_string())
+}
+
+/// Every build for the Minecraft version, newest first; betas tagged.
+pub fn builds_for(all: &[String], mc: &str) -> Vec<LoaderVersion> {
+    let mut matching: Vec<&String> = all.iter().filter(|v| mc_for(v).as_deref() == Some(mc)).collect();
+    matching.sort_by(|a, b| compare_versions(b, a));
+    matching
+        .into_iter()
+        .map(|v| LoaderVersion { id: v.clone(), tag: v.contains("beta").then_some(LoaderTag::Beta) })
+        .collect()
 }
 
 pub fn installer_url(maven_base: &str, version: &str) -> String {

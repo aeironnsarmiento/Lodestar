@@ -79,9 +79,10 @@ impl App {
         if matches!(inst.server_type, ServerType::Forge | ServerType::Neoforge) {
             self.step(id, &format!("Installing {} {mc} (this can take a minute)", inst.server_type.label()))?;
         }
+        let loader = self.loader_to_install(&inst).await?;
         let launch = self
             .providers
-            .install(inst.server_type, &mc, inst.loader_version.as_deref(), &server_dir, Some(&java), &progress)
+            .install(inst.server_type, &mc, loader.as_deref(), &server_dir, Some(&java), &progress)
             .await?;
         self.store.modify(id, |i| i.launch = Some(launch))?;
 

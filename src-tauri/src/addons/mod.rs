@@ -9,6 +9,7 @@ pub mod curseforge;
 pub mod http;
 pub mod modpack;
 pub mod modrinth;
+pub mod requirements;
 pub mod service;
 
 use std::collections::BTreeMap;

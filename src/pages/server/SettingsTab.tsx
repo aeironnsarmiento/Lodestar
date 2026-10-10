@@ -3,9 +3,12 @@ import { GlassButton } from "../../components/glass/GlassButton";
 import { GlassInput, GlassSelect, NumberInput, Switch } from "../../components/glass/GlassInput";
 import { GlassPanel } from "../../components/glass/GlassPanel";
 import { Icon } from "../../components/Icon";
+import { LoaderVersionSelect, useLoaderChoices } from "../../components/LoaderVersionSelect";
 import { PlayerListEditor } from "../../components/PlayerListEditor";
 import {
   api,
+  hasLoader,
+  SERVER_TYPE_LABELS,
   type Difficulty,
   type GameMode,
   type Instance,
@@ -44,6 +47,68 @@ function Panel({ title, note, children, className }: { title: string; note?: str
       </header>
       {children}
     </section>
+  );
+}
+
+/** Which Forge, NeoForge or Fabric build the server runs, and reinstalling another. */
+function ServerSoftwarePanel({ instance, running }: { instance: Instance; running: boolean }) {
+  const loader = SERVER_TYPE_LABELS[instance.serverType];
+  const settingUp = instance.provision.state === "running";
+  // Re-read the installed build and the mods once setup finishes.
+  const { choices, error } = useLoaderChoices(instance.serverType, instance.mcVersion, instance.id, instance.provision.state);
+  const [pick, setPick] = useState<string | null>(instance.loaderVersion);
+  const [actionError, setActionError] = useState<string | null>(null);
+  useEffect(() => setPick(instance.loaderVersion), [instance.loaderVersion]);
+
+  const installed = choices?.installed ?? null;
+  const target = pick ?? choices?.automatic ?? null;
+  const pending = pick !== instance.loaderVersion || (target !== null && target !== installed);
+  const installedRefusals =
+    choices && installed ? (choices.versions.find((v) => v.id === installed)?.rejectedBy ?? []).map((i) => choices.requirements[i]) : [];
+
+  const install = async () => {
+    setActionError(null);
+    try {
+      await api.setLoaderVersion(instance.id, pick);
+    } catch (e) {
+      setActionError(errorMessage(e));
+    }
+  };
+
+  const hint = [`Minecraft ${instance.mcVersion}`, installed ? `${installed} installed` : "not installed yet"].join(" · ");
+  return (
+    <Panel title="Server software" note={settingUp ? "Installing…" : running ? "Stop the server to change it" : undefined}>
+      <Row label={`${loader} version`} hint={hint}>
+        <div className="stack" style={{ gap: 6, alignItems: "flex-end" }}>
+          <LoaderVersionSelect
+            serverType={instance.serverType}
+            choices={choices}
+            error={error}
+            value={pick}
+            onChange={setPick}
+            disabled={settingUp}
+          />
+          <GlassButton size="sm" variant="primary" disabled={!choices || !target || !pending || running || settingUp} onClick={install}>
+            {target ? `Install ${target}` : "Install"}
+          </GlassButton>
+        </div>
+      </Row>
+      {installedRefusals.length > 0 && (
+        <div className="stack" style={{ gap: 2, padding: "0 0 8px" }} role="alert">
+          {installedRefusals.map((r) => (
+            <span key={r.fileName + r.range} className="warn-text" style={{ fontSize: 12.5 }}>
+              {r.modName} needs {loader} {r.summary}, so the server will not start on {installed}.
+            </span>
+          ))}
+        </div>
+      )}
+      {instance.modpack && (
+        <p className="hint" style={{ fontSize: 12.5 }}>
+          {instance.modpack.title} chose this version; another one may not suit the pack.
+        </p>
+      )}
+      {actionError && <p className="error-text">{actionError}</p>}
+    </Panel>
   );
 }
 
@@ -141,6 +206,8 @@ export function SettingsTab({ instance, running, onDeleted }: SettingsTabProps) 
           </Row>
         )}
       </Panel>
+
+      {hasLoader(instance.serverType) && <ServerSoftwarePanel instance={instance} running={running} />}
 
       <Panel title="Gameplay">
         <Row label="Game mode">

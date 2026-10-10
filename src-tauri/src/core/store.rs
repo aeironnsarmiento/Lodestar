@@ -188,6 +188,12 @@ impl Store {
             .get(&inst.id)
             .ok_or_else(|| anyhow!("No server with id '{}'.", inst.id))?;
         inst.created_at = existing.created_at.clone();
+        // Set up by provisioning, not the settings form: a form saved while a
+        // reinstall runs must not put the old values back.
+        inst.loader_version = existing.loader_version.clone();
+        inst.launch = existing.launch.clone();
+        inst.java_major = existing.java_major;
+        inst.provision = existing.provision.clone();
         if inst.name.trim().is_empty() {
             bail!("Give the server a name.");
         }

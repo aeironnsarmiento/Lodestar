@@ -36,6 +36,45 @@ pub struct VersionEntry {
     pub release_time: Option<String>,
 }
 
+#[derive(Serialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum LoaderTag {
+    /// Forge's recommended promotion.
+    Recommended,
+    /// Forge's latest promotion.
+    Latest,
+    /// Not marked stable.
+    Beta,
+}
+
+/// One loader build a server can install (Forge, NeoForge or Fabric).
+#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LoaderVersion {
+    /// As stored in `Instance::loader_version`: `47.4.20` for Forge (no Minecraft
+    /// prefix), `21.1.219` for NeoForge, `0.19.5` for Fabric.
+    pub id: String,
+    pub tag: Option<LoaderTag>,
+}
+
+/// The loader build an installed server runs, read from its launch files:
+/// `libraries/net/minecraftforge/forge/1.20.1-47.4.10/win_args.txt` → `47.4.10`,
+/// `fabric-26.3-loader0.19.5-launcher1.1.2.jar` → `0.19.5`.
+pub fn loader_from_launch(server_type: ServerType, mc: &str, launch: &LaunchInfo) -> Option<String> {
+    match (server_type, launch) {
+        (ServerType::Forge | ServerType::Neoforge, LaunchInfo::ArgsFile { args_file }) => {
+            let dir = Path::new(args_file).parent()?.file_name()?.to_string_lossy().into_owned();
+            Some(dir.strip_prefix(&format!("{mc}-")).map(String::from).unwrap_or(dir))
+        }
+        (ServerType::Fabric, LaunchInfo::Jar { jar }) => {
+            let name = Path::new(jar).file_name()?.to_string_lossy().into_owned();
+            let rest = name.split_once("-loader")?.1;
+            Some(rest.split_once("-launcher")?.0.to_string())
+        }
+        _ => None,
+    }
+}
+
 /// What to run and where. The supervisor runs any spec (KTD5).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LaunchSpec {
@@ -202,6 +241,25 @@ impl Providers {
         Ok(list)
     }
 
+    /// Loader builds for a Minecraft version, newest first. Empty for Vanilla and Paper.
+    pub async fn loader_versions(&self, server_type: ServerType, mc_version: &str) -> Result<Vec<LoaderVersion>> {
+        Ok(match server_type {
+            ServerType::Vanilla | ServerType::Paper => Vec::new(),
+            ServerType::Fabric => {
+                fabric::parse_loaders(&self.downloader.get_text(&format!("{}/versions/loader", self.endpoints.fabric_meta)).await?)?
+            }
+            ServerType::Forge => {
+                let promos = forge::parse_promotions(&self.downloader.get_text(&self.endpoints.forge_promotions).await?)?;
+                let xml = self.downloader.get_text(&format!("{}/maven-metadata.xml", self.endpoints.forge_maven)).await?;
+                forge::builds_for(&forge::parse_maven_metadata(&xml), &promos, mc_version)
+            }
+            ServerType::Neoforge => {
+                let all = neoforge::parse_versions(&self.downloader.get_text(&self.endpoints.neoforge_api).await?)?;
+                neoforge::builds_for(&all, mc_version)
+            }
+        })
+    }
+
     /// The Java feature version Mojang says a Minecraft version needs (KTD9).
     pub async fn java_requirement(&self, mc_version: &str) -> Result<u32> {
         let manifest = self.manifest().await?;
@@ -295,7 +353,7 @@ impl Providers {
                 let installer = cache.join(format!("{}-{loader_version}-installer.jar", server_type.label().to_lowercase()));
                 self.downloader.download(&url, &installer, None, progress).await?;
                 forge::run_installer(java, &installer, server_dir).await?;
-                forge::detect_launch(server_dir)
+                forge::detect_launch(server_dir, Some(&loader_version))
             }
         }
     }

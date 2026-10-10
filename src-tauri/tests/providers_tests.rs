@@ -125,7 +125,7 @@ fn forge_install_directory_launches_with_args_files_not_run_bat() {
     std::fs::write(server.join("user_jvm_args.txt"), "# custom JVM args").unwrap();
     std::fs::write(server.join("run.bat"), "java @user_jvm_args.txt @libraries/... %*").unwrap();
 
-    let launch = forge::detect_launch(server).unwrap();
+    let launch = forge::detect_launch(server, None).unwrap();
     assert_eq!(
         launch,
         LaunchInfo::ArgsFile { args_file: "libraries/net/minecraftforge/forge/26.3-66.0.9/win_args.txt".into() }
@@ -146,9 +146,9 @@ fn forge_install_directory_launches_with_args_files_not_run_bat() {
 #[test]
 fn installs_without_launch_files_are_reported() {
     let dir = tempfile::tempdir().unwrap();
-    assert!(forge::detect_launch(dir.path()).is_err());
+    assert!(forge::detect_launch(dir.path(), None).is_err());
     std::fs::write(dir.path().join("forge-26.3-66.0.9-shim.jar"), b"PK").unwrap();
-    match forge::detect_launch(dir.path()).unwrap() {
+    match forge::detect_launch(dir.path(), None).unwrap() {
         LaunchInfo::Jar { jar } => assert!(jar.ends_with("forge-26.3-66.0.9-shim.jar")),
         other => panic!("unexpected {other:?}"),
     }

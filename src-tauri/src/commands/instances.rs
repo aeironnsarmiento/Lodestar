@@ -1,5 +1,6 @@
 use super::{err, AppState, CmdResult};
 use crate::core::instance::{Instance, NewInstance, ServerType};
+use crate::core::loader::LoaderChoices;
 use crate::providers::VersionEntry;
 
 #[tauri::command]
@@ -41,4 +42,16 @@ pub fn delete_instance(app: AppState<'_>, id: String) -> CmdResult<()> {
 #[tauri::command]
 pub async fn list_versions(app: AppState<'_>, server_type: ServerType) -> CmdResult<Vec<VersionEntry>> {
     app.versions(server_type).await.map_err(err)
+}
+
+/// Loader builds for a type and Minecraft version, checked against server `id`'s mods.
+#[tauri::command]
+pub async fn loader_choices(app: AppState<'_>, server_type: ServerType, mc_version: String, id: Option<String>) -> CmdResult<LoaderChoices> {
+    app.loader_choices(server_type, &mc_version, id.as_deref()).await.map_err(err)
+}
+
+/// Pins a loader build (`null` = Automatic) and reinstalls the server software.
+#[tauri::command]
+pub async fn set_loader_version(app: AppState<'_>, id: String, version: Option<String>) -> CmdResult<()> {
+    app.inner().set_loader_version(&id, version).map_err(err)
 }

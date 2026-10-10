@@ -3,7 +3,7 @@
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 
-use super::{VersionEntry, VersionKind};
+use super::{LoaderTag, LoaderVersion, VersionEntry, VersionKind};
 
 #[derive(Deserialize)]
 struct GameVersion {
@@ -28,6 +28,15 @@ pub fn parse_game_versions(text: &str) -> Result<Vec<VersionEntry>> {
 struct Component {
     version: String,
     stable: bool,
+}
+
+/// Every loader version, newest first (the API's order); unstable ones tagged beta.
+pub fn parse_loaders(text: &str) -> Result<Vec<LoaderVersion>> {
+    let list: Vec<Component> = serde_json::from_str(text).context("Fabric's metadata has an unexpected format")?;
+    Ok(list
+        .into_iter()
+        .map(|c| LoaderVersion { id: c.version, tag: (!c.stable).then_some(LoaderTag::Beta) })
+        .collect())
 }
 
 /// The newest stable loader or installer version.
